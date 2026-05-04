@@ -2,70 +2,108 @@
 
 from tkinter import *
 from tkinter import ttk
-from tkinter import messagebox
-from time import time, localtime, strftime, sleep,  perf_counter
-from itertools import chain
-from collections import defaultdict
-
+from time import time
+import csv
 import random
 import os.path
 import os
 
-from common import ExperimentFrame, InstructionsFrame, read_all, Measure
+from common import ExperimentFrame, InstructionsFrame, InstructionsAndUnderstanding
 from gui import GUI
-from constants import TESTING
-
 
 
 ##################################################################################################################
 # TEXTS #
 #########
 
-questionText = """Který z dvojice výrobků byste si raději odnesl(a) domů?
-Vyberte kliknutím na obrázek."""
+questionText = "Chcete koupit tento produkt?"
 
-intro = """Nyní Vám postupně ukážeme 15 párů výrobků. U každého páru klikněte na ten výrobek, který byste si raději odnesli domů. Máte pravděpodobnost 10%, že vyhrajete náhodně vybraných 5 výrobků z těch, které si vyberete. Vybírejte proto prosím pečlivě, později už není možné volbu změnit. 
-"""
+products_intro_1 = """Tímto končí první část studie.
+
+Nyní bude následovat druhá část, která se týká rozhodování o nákupu běžných spotřebních produktů. Tato část má vlastní instrukce a vlastní mechanismus odměňování. Před jejím začátkem si prosím pečlivě přečtěte následující pravidla.
+
+Během této studie budete činit sérii nákupních rozhodnutí u běžných spotřebních produktů.
+V každém kroku uvidíte produkt, jeho charakteristiky, kategorii a cenu. Vaším úkolem bude rozhodnout, zda byste si daný produkt za uvedenou cenu koupil/a.
+Původní ceny uvedené u slevových nabídek produktů použitých ve studii vycházejí z cen, za které výzkumný tým produkty nakoupil."""
+
+products_intro_2 = """K této nákupní části studie máte k dispozici experimentální rozpočet 110 Kč.
+
+Během studie učiníte sérii rozhodnutí typu: "Koupil/a byste si tento produkt za uvedenou cenu?"
+Na konci studie budou náhodně vybrány dvě produktové kategorie. Z každé z těchto kategorií bude následně náhodně vybráno právě jedno Vaše rozhodnutí k realizaci. Celkem tedy budou realizována dvě Vaše rozhodnutí.
+Pokud jste u vybraného produktu zvolil/a ANO, produkt za uvedenou cenu skutečně koupíte, tato částka se odečte z Vašeho rozpočtu a produkt obdržíte.
+Pokud jste u vybraného produktu zvolil/a NE, produkt neobdržíte a žádná částka Vám nebude z Vašeho rozpočtu odečtena.
+Zbytek experimentálního rozpočtu bude připočten k Vaší fixní odměně za účast."""
+
+products_understanding_intro = """Než budete pokračovat, odpovězte prosím na následující kontrolní otázky, které ověří, zda rozumíte pravidlům nákupní části studie a způsobu realizace rozhodnutí."""
+
+products_understanding_questions = [
+    [
+        "Kolik Vašich rozhodnutí bude na konci studie náhodně vybráno k realizaci?",
+        [
+            "Žádné",
+            "Právě jedno",
+            "Právě dvě",
+        ],
+        [
+            "To není správně.\nNa konci studie budou k realizaci náhodně vybrána dvě Vaše rozhodnutí.",
+            "To není správně.\nNa konci studie budou k realizaci náhodně vybrána dvě Vaše rozhodnutí.",
+            "Správně.\nNa konci studie budou k realizaci náhodně vybrána dvě Vaše rozhodnutí.",
+        ],
+    ],
+    [
+        "Co se stane, pokud jste u náhodně vybrané volby produktu zvolili ANO?",
+        [
+            "Produkt nezískám, ale dostanu peněžní bonus.",
+            "Produkt za cenu ve vylosované volbě skutečně koupím, částka se odečte z mého rozpočtu a produkt obdržím.",
+            "Nic se nestane, jde jen o hypotetické rozhodnutí.",
+        ],
+        [
+            "To není správně.\nPokud jste u náhodně vybrané volby produktu zvolili ANO, produkt za uvedenou cenu skutečně koupíte, částka se odečte z Vašeho experimentálního rozpočtu a produkt obdržíte.",
+            "Správně.\nPokud jste u náhodně vybrané volby produktu zvolili ANO, produkt za uvedenou cenu skutečně koupíte, částka se odečte z Vašeho experimentálního rozpočtu a produkt obdržíte.",
+            "To není správně.\nPokud jste u náhodně vybrané volby produktu zvolili ANO, produkt za uvedenou cenu skutečně koupíte, částka se odečte z Vašeho experimentálního rozpočtu a produkt obdržíte.",
+        ],
+    ],
+]
+
+products_intro_4 = """Nyní začne první část nákupní úlohy.
+V této části uvidíte sérii produktů. U každého produktu odpovězte, zda byste si jej za uvedenou cenu koupil/a.
+Rozhodujte se prosím tak, jako by se právě toto rozhodnutí mohlo stát tím, které bude na konci studie realizováno."""
 
 notChosenText = """V úloze s výběrem výrobků jste nebyl(a) vylosován(a)."""
 chosenText = """V úloze s výběrem výrobků jste byl(a) vylosován(a). Obdržíte náhodně vybrané výrobky z těch, které jste si vybral(a) v úloze. <b>Zapamatujte si číslo tašky {}, které sdělte při vyplácení odměny výzkumným asistentům.</b>"""
 
-
 ##################################################################################################################
-
-
-ProductsIntro = (InstructionsFrame, {"text": intro, "height": 7})
 
 
 class Choices(ExperimentFrame):
     def __init__(self, root):
         super().__init__(root)
 
-        with open(os.path.join(os.path.dirname(__file__), "products.txt"), encoding = "utf-8") as f:
-            self.infos = [line.rstrip().split("\t") for line in f]
+        file_path = os.path.join(os.path.dirname(__file__), "products.tsv")
+        with open(file_path, encoding = "utf-8", newline = "") as f:
+            reader = csv.DictReader(f, delimiter = "\t")
+            self.infos = [row for row in reader if row.get("file")]
         random.shuffle(self.infos)
 
-        self.file.write("Products\n")        
+        self.file.write("Products\n")
 
-        self.selected = defaultdict(list)
+        self.selected = {}
+        self.current = None
 
-        self.order = -1                      
+        self.order = -1
 
-        self.text = ttk.Label(self, font = "helvetica 15", justify = "center", background = "white", text = questionText)
-        self.text.grid(row = 0, column = 0, sticky = S, pady = 35)
-             
-        self.twoProducts = TwoProducts(self)
-        self.twoProducts.grid(row = 1, column = 0)
+        self.product = OneProduct(self)
+        self.product.grid(column = 0, row = 1)
 
         self.trialText = ttk.Label(self, text = "", font = "helvetica 15", background = "white", justify = "left", width = 15)
         self.trialText.grid(column = 0, row = 0, pady = 30, padx = 10, sticky = NE)
 
-        self.columnconfigure(0, weight = 1)      
+        self.columnconfigure(0, weight = 1)
         self.rowconfigure(0, weight = 1)
         self.rowconfigure(2, weight = 1)
 
         self.proceed()
-        
+
     def proceed(self):
         self.order += 1
         self.trialText["text"] = f"Produkt {self.order + 1:>3}/{len(self.infos)}"
@@ -78,53 +116,42 @@ class Choices(ExperimentFrame):
                 self.root.status["results"] += [chosenText.format(self.root.status["bag"])]
             self.nextFun()
         else:
-            self.twoProducts.changeImages(self.infos[self.order][0])
-            self.t0 = time()            
+            self.current = dict(self.infos[self.order])
+            self.current["shown_cost"] = random.choice([
+                self.current["cost"],
+                self.current["sale"],
+                self.current["low"],
+            ])
+            self.product.showProduct(self.current)
+            self.t0 = time()
 
+    def record_choice(self, choice):
+        if self.current is None:
+            return
 
-    def nextFun(self):        
+        if choice == "yes":
+            self.selected[self.current["id"]] = self.current["shown_cost"]
+
+        elapsed = time() - self.t0
+        self.file.write("\t".join([
+            self.id,
+            str(self.order + 1),
+            self.current["id"],
+            self.current["label"],
+            self.current["size"],
+            self.current["category"],
+            self.current["shown_cost"],
+            choice,
+            str(elapsed),
+        ]) + "\n")
+        self.proceed()
+
+    def nextFun(self):
         if self.root.status["bag"] != "-1":
             data = "_".join([i for i in self.selected.keys()]) + "|" + "_".join([i for i in self.selected.values()])
             data = {'id': self.id, 'round': "products", 'offer': data}
             self.sendData(data)
         super().nextFun()
-
-
-
-
-class TwoProducts(Canvas):
-    def __init__(self, root):
-        super().__init__(root, highlightbackground = "white", highlightcolor = "white", background = "white")
-
-        self.root = root
-        self.selected = self.root.selected
-            
-        self.leftProduct = OneProduct(self)
-        self.leftProduct.grid(column = 1, row = 1, padx = 5, sticky = NSEW)
-
-        self.rightProduct = OneProduct(self)
-        self.rightProduct.grid(column = 3, row = 1, padx = 5, sticky = NSEW)
-                            
-        self.columnconfigure(0, weight = 1)
-        self.columnconfigure(2, weight = 1)
-        self.columnconfigure(4, weight = 1)
-
-    def proceed(self):
-        self.root.proceed()
-
-    def changeImages(self, product):
-        self.sides = ["Bio", "Nebio"]
-        random.shuffle(self.sides)
-        left = os.path.join(os.path.dirname(__file__), "Products", self.sides[0], product)
-        right = os.path.join(os.path.dirname(__file__), "Products", self.sides[1], product)
-        if self.sides[0] == "Bio":
-            leftDescription = self.root.infos[self.root.order][1]
-            rightDescription = self.root.infos[self.root.order][2]
-        else:   
-            leftDescription = self.root.infos[self.root.order][2]
-            rightDescription = self.root.infos[self.root.order][1]
-        self.leftProduct.changeImage(left, leftDescription)
-        self.rightProduct.changeImage(right, rightDescription)
 
 
 class OneProduct(Canvas):
@@ -134,84 +161,70 @@ class OneProduct(Canvas):
         self["background"] = "white"
 
         self.root = root
-        self.selected = self.root.selected
 
         self.product = Product(self)
         self.product.grid(column = 1, row = 0)
 
         self.label = ttk.Label(self, text = "", background = "white", font = "helvetica 15 bold", width = 55, anchor = "center")
         self.label.grid(column = 1, row = 1, pady = 8)
-        self.bottomLabel = ttk.Label(self, text = "", background = "white", font = "helvetica 15")
-        self.bottomLabel.grid(column = 1, row = 2, pady = 4)
+
+        self.categoryLabel = ttk.Label(self, text = "", background = "white", font = "helvetica 11")
+        self.categoryLabel.grid(column = 1, row = 2, pady = 1)
+
+        self.priceLabel = ttk.Label(self, text = "", background = "white", font = "helvetica 16 bold")
+        self.priceLabel.grid(column = 1, row = 3, pady = 4)
+
+        self.questionLabel = ttk.Label(self, text = questionText, background = "white", font = "helvetica 15")
+        self.questionLabel.grid(column = 1, row = 4, pady = 10)
+
+        self.buttons = Frame(self, background = "white")
+        self.buttons.grid(column = 1, row = 5, pady = 5)
+        self.yesButton = ttk.Button(self.buttons, text = "Ano", command = lambda: self.choose("yes"))
+        self.yesButton.grid(column = 0, row = 0, padx = 10)
+        self.noButton = ttk.Button(self.buttons, text = "Ne", command = lambda: self.choose("no"))
+        self.noButton.grid(column = 1, row = 0, padx = 10)
 
         self.columnconfigure(0, weight = 1)
-        self.columnconfigure(2, weight = 1) 
+        self.columnconfigure(2, weight = 1)
 
-    def changeImage(self, product, description):        
-        self.product.changeImage(product + ".png")        
-        self.label["text"] = description
-            
-    def proceed(self):
-        self.root.proceed()
+    def showProduct(self, product):
+        self.product.changeImage(product["file"])
+        self.label["text"] = f"{product['label']} ({product['size']})"
+        self.categoryLabel["text"] = product["category"]
+        self.priceLabel["text"] = product["shown_cost"]
 
-    def highlight(self):
-        self.product.highlight()
-
-    def removeHighlight(self):
-        self.product.removeHighlight()
-
+    def choose(self, choice):
+        self.root.record_choice(choice)
 
 
 class Product(Label):
     def __init__(self, root):
         super().__init__(root, background = "white", foreground = "white", relief = "flat", borderwidth = 10)
-        self.config(width=460, height=460)
+        self.config(width = 460, height = 460)
         self["anchor"] = "center"
 
-        self.root = root
-        self.selected = self.root.selected
-
-        self.bind("<Enter>", self.entered)
-        self.bind("<Leave>", self.left)
-        self.bind("<1>", self.clicked)        
-
     def changeImage(self, file):
-        file = os.path.join(os.path.dirname(__file__), "Products", file)        
+        file = os.path.join(os.path.dirname(__file__), "Products", file)
         self.image = PhotoImage(file = file)
         self["image"] = self.image
-        self.file = file
-        self.t0 = perf_counter()        
 
-    def entered(self, _):
-        self.config(cursor = "hand2")
 
-    def left(self, _):
-        self.config(cursor = "arrow")
 
-    def clicked(self, _):
-        if not TESTING:
-            if perf_counter() - self.t0 < 0.2:            
-                return
-        name = os.path.basename(self.file).rstrip(".png")
-        folder = os.path.basename(os.path.dirname(self.file))
-        self.selected[name] = folder
-        self.root.root.root.file.write("\t".join([self.root.root.root.id,
-                                                  str(self.root.root.root.order + 1),
-                                                  self.root.label["text"],
-                                                  #str(self.root.root.root.current[0]),
-                                                  self.root.root.leftProduct.label["text"],
-                                                  self.root.root.rightProduct.label["text"],
-                                                  str(time() - self.root.root.root.t0)]
-                                                 ) + "\n")
-        self.root.proceed()
 
-    def highlight(self):
-        self["background"] = "red"
-
-    def removeHighlight(self):
-        self["background"] = "white"
-        
-
+ProductsIntro1 = (InstructionsFrame, {"text": products_intro_1, "height": "auto"})
+ProductsIntro2 = (InstructionsFrame, {"text": products_intro_2, "height": "auto"})
+ProductsIntroUnderstanding = (
+    InstructionsAndUnderstanding,
+    {
+        "text": products_understanding_intro,
+        "controlTexts": products_understanding_questions,
+        "name": "ProductsInstructionsAndUnderstanding",
+        "randomize": False,
+        "height": "auto",
+        "finalButton": "Další",
+    },
+)
+ProductsIntro4 = (InstructionsFrame, {"text": products_intro_4, "height": "auto"})
 
 
 
@@ -219,12 +232,16 @@ class Product(Label):
 def main():
     os.chdir(os.path.dirname(os.getcwd()))
     from login import Login
-    from intros import Ending
-    GUI([#ProductsIntro,
-         Login,
-         Choices,
-         Ending
-         ])
+    #from intros import Ending
+    GUI([
+        Login,
+        ProductsIntro1,
+        ProductsIntro2,
+        ProductsIntroUnderstanding,
+        ProductsIntro4,
+        Choices,
+        #Ending,
+    ])
 
 
 if __name__ == "__main__":

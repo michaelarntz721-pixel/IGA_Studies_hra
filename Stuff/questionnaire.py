@@ -7,13 +7,14 @@ import tkinter.font as tkfont
 from collections import deque
 from time import perf_counter, sleep
 from math import ceil
+import re
 
 import random
 import os
 
 from common import ExperimentFrame, InstructionsFrame, Question, Measure, read_all
 from gui import GUI
-from constants import ATTENTION_BONUS, TESTING, AUTOFILL
+from constants import TESTING, AUTOFILL, ATTENTION_BONUS
 
 
 ################################################################################
@@ -41,6 +42,37 @@ sciIntro1 = "<b>Když se zamyslíte nad typickou nocí v posledním měsíci…<
 sciIntro2 = "\nKdyž se zamyslíte nad uplynulým měsícem, do jaké míry špatný spánek"
 sciIntro3 = "\nNakonec…"
 mindsetIntro = "Do jaké míry souhlasíte nebo nesouhlasíte s těmito tvrzeními?"
+
+
+transactionValueIntro = """Níže jsou uvedena tvrzení týkající se cenových nabídek. U každého tvrzení označte, nakolik s ním souhlasíte."""
+
+numeracyIntro = """Na této obrazovce budete řešit několik krátkých početních úloh.
+Odpovězte prosím na následující otázky. Nepoužívejte mobilní telefon, ale pro poznámky můžete využít volný papír."""
+
+salesPronenessIntro = """Níže jsou uvedena tvrzení týkající se cenových nabídek produktů. U každého tvrzení označte, nakolik s ním souhlasíte."""
+
+NUMERACY_ITEMS = [
+    {
+        "id": "1",
+        "text": "V malém městě je z 1 000 obyvatel 500 členy pěveckého sboru. Z těchto 500 členů sboru je 100 mužů. Z 500 obyvatel, kteří členy sboru nejsou, je 300 mužů. Jaká je pravděpodobnost, že náhodně vybraný muž je členem sboru? Uveďte prosím pravděpodobnost v procentech.",
+        "unit": "%",
+    },
+    {
+        "id": "2a",
+        "text": "Představte si, že padesátkrát hodíme pětistěnnou kostkou. Kolikrát by tato kostka v průměru z těchto 50 hodů ukázala liché číslo (1, 3 nebo 5)?",
+        "unit": "z 50 hodů",
+    },
+    {
+        "id": "2b",
+        "text": "Představte si, že házíme nevyváženou kostkou (se 6 stranami). Pravděpodobnost, že padne číslo 6, je dvakrát vyšší než pravděpodobnost každého z ostatních čísel. Kolikrát by v průměru z těchto 70 hodů padlo číslo 6?",
+        "unit": "z 70 hodů",
+    },
+    {
+        "id": "3",
+        "text": "V lese je 20 % hub červených, 50 % hnědých a 30 % bílých. Pravděpodobnost, že červená houba je jedovatá, je 20 %. Pravděpodobnost, že houba, která není červená, je jedovatá, je 5 %. Jaká je pravděpodobnost, že jedovatá houba v lese je červená?",
+        "unit": "%",
+    },
+]
 
 ################################################################################
 
@@ -144,9 +176,10 @@ class Questionnaire(ExperimentFrame):
             self.answers = [self.answers[0]] + [""]*(self.values - 2) + [self.answers[-1]]
 
         for count, label in enumerate(self.answers):
+            _lw = self.labelwidth * tkfont.Font(family="helvetica", size=self.labelFontsize, weight="normal").measure("0") if self.labelwidth else 0
             self.texts.append(ttk.Label(self.frame, text = label, background = "white",
                                         font = "helvetica {}".format(self.labelFontsize), anchor = "center",
-                                        justify = "center", wraplength = self.labelwidth * tkfont.Font(family="helvetica", size=self.labelFontsize, weight="normal").measure("0")))
+                                        justify = "center", wraplength = _lw))
             if self.labelwidth:
                self.texts[count]["width"] = self.labelwidth,
             self.texts[count].grid(column = count+2, row = 0, sticky = W, pady = 4, padx = 3)
@@ -205,9 +238,12 @@ class MeasureQuestionnaire(InstructionsFrame):
         self.filetext = filetext
         self.measures = []
 
+        left = kwargs.pop("left", "")
+        right = kwargs.pop("right", "")
+
         for count, question in enumerate(self.questions, start = 2):
-            measure = Measure(self, text = question, values = self.options[count - 2], left = "", right = "", function = self.enable, **kwargs)
-            measure.grid(row = count, column = 1)
+            measure = Measure(self, text = question, values = self.options[count - 2], left = left, right = right, function = self.enable, **kwargs)
+            measure.grid(row = count, column = 1, sticky = EW)
             self.measures.append(measure)
 
         self.next.grid(row = len(self.measures) + 2, column = 1)
@@ -257,6 +293,118 @@ class MeasureQuestionnaire(InstructionsFrame):
     def gothrough(self):
         for measure in self.measures:
             random.choice(measure.radios).invoke()
+        self.update()
+        sleep(0.5)
+        self.next.invoke()
+
+
+class Numeracy(ExperimentFrame):
+    def __init__(self, root):
+        super().__init__(root)
+
+        self.file.write("Numeracy\n")
+
+        self.vars = []
+        self.entries = []
+        self.vcmd = (self.register(self._validate_number), "%P")
+
+        self.instructions = ttk.Label(
+            self,
+            text = numeracyIntro,
+            background = "white",
+            font = "helvetica 15",
+            justify = "center",
+            wraplength = 1100,
+        )
+        self.instructions.grid(row = 0, column = 1, pady = (10, 20))
+
+        self.form = Frame(self, background = "white")
+        self.form.grid(row = 1, column = 1, sticky = NSEW)
+
+        for idx, item in enumerate(NUMERACY_ITEMS, start = 1):
+            question = ttk.Label(
+                self.form,
+                text = f"{item['id']}. {item['text']}",
+                background = "white",
+                font = "helvetica 15",
+                justify = "left",
+                wraplength = 1030,
+            )
+            question.grid(row = (idx - 1) * 2, column = 0, columnspan = 3, sticky = W, pady = (35, 2))
+
+            var = StringVar()
+            var.trace_add("write", self._on_change)
+            self.vars.append(var)
+
+            entry = ttk.Entry(
+                self.form,
+                textvariable = var,
+                width = 14,
+                font = "helvetica 15",
+                justify = "center",
+                validate = "key",
+                validatecommand = self.vcmd,
+            )
+            entry.grid(row = (idx - 1) * 2 + 1, column = 0, sticky = W, padx = (10, 8), pady = (2, 0))
+            self.entries.append(entry)
+
+            unit_label = ttk.Label(self.form, text = item["unit"], background = "white", font = "helvetica 15")
+            unit_label.grid(row = (idx - 1) * 2 + 1, column = 1, sticky = W, pady = (2, 0))
+
+        ttk.Style().configure("TButton", font = "helvetica 15")
+        self.next = ttk.Button(self, text = "Pokračovat", command = self.nextFun, state = "disabled")
+        self.next.grid(row = 2, column = 1, pady = 10)
+
+        self.columnconfigure(0, weight = 1)
+        self.columnconfigure(2, weight = 1)
+        self.rowconfigure(0, weight = 2)  # space above + instructions
+        self.rowconfigure(1, weight = 3)  # form area
+        self.rowconfigure(2, weight = 1)  # button
+        self.rowconfigure(3, weight = 2)  # space below
+
+        self.form.columnconfigure(2, weight = 1)
+        # distribute vertical space evenly between entry rows inside the form
+        for _entry_row in range(1, len(NUMERACY_ITEMS) * 2, 2):
+            self.form.rowconfigure(_entry_row, weight = 1)
+
+    @staticmethod
+    def _validate_number(proposed):
+        if proposed == "":
+            return True
+        normalized = proposed.replace(",", ".")
+        return bool(re.fullmatch(r"[0-9]*\.?[0-9]*", normalized)) and normalized.count(".") <= 1
+
+    @staticmethod
+    def _normalize_number(value):
+        return value.strip().replace(",", ".")
+
+    def _is_complete(self):
+        for var in self.vars:
+            value = self._normalize_number(var.get())
+            if not value or value == ".":
+                return False
+            try:
+                float(value)
+            except ValueError:
+                return False
+        return True
+
+    def _on_change(self, *_):
+        self.next["state"] = "normal" if self._is_complete() else "disabled"
+
+    def write(self):
+        for item, var in zip(NUMERACY_ITEMS, self.vars):
+            answer = self._normalize_number(var.get())
+            self.file.write(self.id + "\t" + item["id"] + "\t" + answer + "\n")
+        self.file.write("\n")
+
+    def check(self):
+        return self._is_complete()
+
+    def gothrough(self):
+        autofill_values = ["25", "30", "20", "50"]
+        for var, value in zip(self.vars, autofill_values):
+            var.set(value)
         self.update()
         sleep(0.5)
         self.next.invoke()
@@ -465,76 +613,7 @@ class Likert(Canvas):
 
 
 
-class SCI(MeasureQuestionnaire):
-    def __init__(self, root):
-        InstructionsFrame.__init__(self, root, text=sciIntro1, proceed=True, savedata=True)
 
-        self.root = root
-        questions = self.load_questions("sleep_questions.txt")
-        options = self.load_options("sleeep_answers.txt", len(questions))
-        self.filetext = "SCI"
-        self.measures = []
-
-        kwargs = {"questionPosition": "above", "labelPosition": "next", "filler": 800}
-
-        # rows 2-5: measures 1-4, row 6: sciIntro2, rows 7-9: measures 5-7, row 10: sciIntro3, row 11: measure 8
-        row_map = [2, 3, 4, 5, 7, 8, 9, 11]
-
-        for i, (question, option_set) in enumerate(zip(questions, options)):
-            measure = Measure(self, text=question, values=option_set, left="", right="",
-                              function=self.enable, **kwargs)
-            measure.grid(row=row_map[i], column=1)
-            self.measures.append(measure)
-
-        ttk.Label(self, text=sciIntro2, background="white",
-                  font="helvetica 15 bold", anchor="center").grid(row=6, column=1, pady=10)
-        ttk.Label(self, text=sciIntro3, background="white",
-                  font="helvetica 15 bold", anchor="center").grid(row=10, column=1, pady=10)
-
-        self.next.grid(row=12, column=1)
-
-        self.rowconfigure(0, weight=3)
-        self.rowconfigure(1, weight=0)
-        for r in row_map:
-            self.rowconfigure(r, weight=1)
-        self.rowconfigure(6, weight=1)
-        self.rowconfigure(10, weight=1)
-        self.rowconfigure(12, weight=2)
-        self.rowconfigure(13, weight=3)
-
-        self.next["state"] = "disabled"
-
-UPPS = (Questionnaire,
-                {"words": "upps.txt",
-                    "question": uppsIntro,
-                    "labels": ["rozhodně nesouhlasím",
-                                "spíše nesouhlasím",
-                                "spíše souhlasím",
-                                "rozhodně souhlasím"],
-                    "perpage": 10,
-                    "randomize": True,
-                    "values": 4,
-                    "labelwidth": 11,
-                    "text": False,
-                    "fontsize": 15,
-                    "blocksize": 10,
-                    "wraplength": 600,
-                    "filetext": "UPPS",
-                    "fixedlines": 2,
-                    "pady": 5})
-
-SAMS = (BlockQuestionnaire,
-                {"perpage": 8,
-                    "file": "sams.txt",
-                    "name": "SAMS",
-                    "left": "Vůbec neodpovídá",
-                    "right": "Přesně odpovídá",
-                    "options": 7,
-                    "shuffle": True,
-                    "instructions": samsIntro,
-                    "wraplength": 900,
-                    "checks": 1,
-                    'center': True}) 
 
 Mindset = (BlockQuestionnaire,
                 {"perpage": 4,
@@ -551,6 +630,30 @@ Mindset = (BlockQuestionnaire,
                     "center": True})
 
 
+TransactionValue = (MeasureQuestionnaire,
+                {"text": transactionValueIntro,
+                    "questions": "transactionValue.txt",
+                    "options": [1, 2, 3, 4, 5, 6, 7],
+                    "filetext": "TransactionValue",
+                    "left": "Rozhodně souhlasím",
+                    "right": "Rozhodně nesouhlasím",
+                    "questionPosition": "above",
+                    "labelPosition": "next",
+                    "filler": 300})
+
+
+SalesProneness = (MeasureQuestionnaire,
+                {"text": salesPronenessIntro,
+                    "questions": "saleProneness",
+                    "options": [1, 2, 3, 4, 5, 6, 7],
+                    "filetext": "SalesProneness",
+                    "left": "Rozhodně nesouhlasím",
+                    "right": "Rozhodně souhlasím",
+                    "questionPosition": "above",
+                    "labelPosition": "next",
+                    "filler": 430})
+
+
 # class Hexaco(BlockQuestionnaire):
 #     def __init__(self, root):
 #         super().__init__(root, 9, "hexaco.txt", "Hexaco", instructions = hexacoinstructions, width = 85,
@@ -563,4 +666,4 @@ QuestInstructions = (InstructionsFrame, {"text": questintro, "height": 15})
 
 if __name__ == "__main__":
     os.chdir(os.path.dirname(os.getcwd()))
-    GUI([SAMS, QuestInstructions, Mindset, UPPS, SAMS, SCI])
+    GUI([SalesProneness, TransactionValue, Numeracy])

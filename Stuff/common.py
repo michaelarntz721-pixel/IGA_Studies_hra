@@ -453,7 +453,7 @@ class Measure(Canvas):
             self.question["font"] = "helvetica 15"
 
         self.scale = Canvas(self, background = "white", highlightbackground = "white", highlightcolor = "white")
-        self.scale.grid(column = 1, row = 2, sticky = EW, columnspan = 2, padx = 40)
+        self.scale.grid(column = 1, row = 2, sticky = EW, columnspan = 2, padx = 40)        
 
         self.radios = []
         for col, value in enumerate(values):
@@ -474,7 +474,6 @@ class Measure(Canvas):
         self.functionProcessed = False
         self.funconce = funconce
 
-    
     def enable(self):
         for radio in self.radios:
             radio["state"] = "normal"
@@ -483,13 +482,11 @@ class Measure(Canvas):
         for radio in self.radios:
             radio["state"] = "disabled"
 
-
     def func(self):
         if not self.funconce or not self.functionProcessed:
             if self.function:
                 self.function()
                 self.functionProcessed = True
-
 
     def write(self):
         if self.text:
