@@ -2,14 +2,17 @@
 
 from tkinter import *
 from tkinter import ttk
+import tkinter.font as tkfont
 from time import time
 import csv
 import random
 import os.path
 import os
+import re
 
 from common import ExperimentFrame, InstructionsFrame, InstructionsAndUnderstanding
 from gui import GUI
+from constants import TESTING, BUDGET
 
 
 ##################################################################################################################
@@ -26,7 +29,7 @@ Během této studie budete činit sérii nákupních rozhodnutí u běžných sp
 V každém kroku uvidíte produkt, jeho charakteristiky, kategorii a cenu. Vaším úkolem bude rozhodnout, zda byste si daný produkt za uvedenou cenu koupil/a.
 Původní ceny uvedené u slevových nabídek produktů použitých ve studii vycházejí z cen, za které výzkumný tým produkty nakoupil."""
 
-products_intro_2 = """K této nákupní části studie máte k dispozici experimentální rozpočet 110 Kč.
+products_intro_2 = f"""K této nákupní části studie máte k dispozici experimentální rozpočet {BUDGET} Kč.
 
 Během studie učiníte sérii rozhodnutí typu: "Koupil/a byste si tento produkt za uvedenou cenu?"
 Na konci studie budou náhodně vybrány dvě produktové kategorie. Z každé z těchto kategorií bude následně náhodně vybráno právě jedno Vaše rozhodnutí k realizaci. Celkem tedy budou realizována dvě Vaše rozhodnutí.
@@ -69,10 +72,30 @@ products_intro_4 = """Nyní začne první část nákupní úlohy.
 V této části uvidíte sérii produktů. U každého produktu odpovězte, zda byste si jej za uvedenou cenu koupil/a.
 Rozhodujte se prosím tak, jako by se právě toto rozhodnutí mohlo stát tím, které bude na konci studie realizováno."""
 
-notChosenText = """V úloze s výběrem výrobků jste nebyl(a) vylosován(a)."""
-chosenText = """V úloze s výběrem výrobků jste byl(a) vylosován(a). Obdržíte náhodně vybrané výrobky z těch, které jste si vybral(a) v úloze. <b>Zapamatujte si číslo tašky {}, které sdělte při vyplácení odměny výzkumným asistentům.</b>"""
+
+
+finalText = """V úloze s nákupem výrobků jste byly vylosovány tyto dvě volby:
+{}
+{}
+Zakoupené produkty obdržíte od experimentátora.
+Zbytek Vašeho rozpočtu, tj. {} je připočten k odměně za studii."""
+chosenText = "Rozhodl/a jste se {}koupit {} za cenu {}."
+
+transparent = "Předchozí cena v tomto experimentu: {}"
+
+
 
 ##################################################################################################################
+
+
+prices = ["low", "middle", "high"]
+conditions = [
+    ("baseline", "sale"),
+    ("sale", "baseline"),
+    ("baseline", "transparent"),
+    ("baseline", "baseline"),
+    ("sale", "sale")
+]
 
 
 class Choices(ExperimentFrame):
@@ -85,9 +108,16 @@ class Choices(ExperimentFrame):
             self.infos = [row for row in reader if row.get("file")]
         random.shuffle(self.infos)
 
+        self.run_index = int(self.root.status.get("products_run_index", 0))
+        self.condition_index = min(self.run_index, 1)
+        self.root.status["products_conditions"] = self._get_or_create_conditions()
+
         self.file.write("Products\n")
 
         self.selected = {}
+        if self.run_index == 0 or "products_all_choices" not in self.root.status:
+            self.root.status["products_all_choices"] = []
+        self.all_choices = self.root.status["products_all_choices"]
         self.current = None
 
         self.order = -1
@@ -104,24 +134,86 @@ class Choices(ExperimentFrame):
 
         self.proceed()
 
+    def _get_or_create_conditions(self):
+        existing = self.root.status.get("products_conditions")
+        product_ids = {info["id"] for info in self.infos}
+
+        if isinstance(existing, dict) and all(pid in existing for pid in product_ids):
+            return existing
+
+        generated = {}
+        for info in self.infos:
+            generated[info["id"]] = {
+                "condition_pair": random.choice(conditions),
+                "price_level": random.choice(prices),
+            }
+        return generated
+
+    @staticmethod
+    def _price_to_float(price_text):
+        match = re.search(r"-?\d+(?:[\.,]\d+)?", str(price_text))
+        if not match:
+            return None
+        return float(match.group(0).replace(",", "."))
+
     def proceed(self):
         self.order += 1
         self.trialText["text"] = f"Produkt {self.order + 1:>3}/{len(self.infos)}"
 
-        if self.order == len(self.infos):
-            self.root.status["products"] = self.selected
-            if self.root.status["bag"] == "-1":
-                self.root.status["results"] += [notChosenText]
-            else:
-                self.root.status["results"] += [chosenText.format(self.root.status["bag"])]
+        if self.order == len(self.infos) or (TESTING and self.order == 10):
+            if self.condition_index == 1:
+                drawn = random.sample(self.all_choices, min(2, len(self.all_choices)))
+                while len(drawn) < 2:
+                    drawn.append(drawn[0] if drawn else {"label": "", "shown_price": "", "choice": "no"})
+                lines = []
+                total_spent = 0
+                for ch in drawn:
+                    bought = ch["choice"] == "yes"
+                    prefix = "" if bought else "ne"
+                    lines.append(chosenText.format(prefix, ch["label"], ch["shown_price"]))
+                    if bought:
+                        price_val = self._price_to_float(ch["shown_price"])
+                        if price_val is not None:
+                            total_spent += price_val
+                remainder = BUDGET - total_spent
+                remainder_str = f"{remainder:.2f} Kč"
+                self.root.status["results"] += [finalText.format(lines[0].replace(",", "."), lines[1].replace(",", "."), remainder_str)]
+                self.root.status["reward"] += (BUDGET - total_spent)
             self.nextFun()
         else:
             self.current = dict(self.infos[self.order])
-            self.current["shown_cost"] = random.choice([
-                self.current["cost"],
-                self.current["sale"],
-                self.current["low"],
-            ])
+            cond_info = self.root.status["products_conditions"][self.current["id"]]
+            pair = cond_info["condition_pair"]
+            if not isinstance(pair, (tuple, list)) or len(pair) != 2:
+                raise ValueError("condition_pair must be a 2-item tuple/list in products_conditions")
+
+            display_condition = pair[self.condition_index]
+            price_level = cond_info.get("price_level", "middle")
+            baseline_price = self.current.get(price_level, self.current.get("middle", ""))
+            high_price = self.current.get("high", "")
+            middle_price = self.current.get("middle", "")
+
+            self.current["display_condition"] = display_condition
+            self.current["price_level"] = price_level
+            self.current["baseline_price"] = baseline_price
+            self.current["high_price"] = high_price
+            self.current["middle_price"] = middle_price
+
+            if display_condition == "baseline":
+                self.current["shown_price"] = baseline_price
+                self.current["discount_pct"] = None
+                self.current["transparent_text"] = ""
+            else:
+                high_val = self._price_to_float(high_price)
+                middle_val = self._price_to_float(middle_price)
+                if high_val and middle_val is not None and high_val > 0:
+                    discount_pct = int(round((high_val - middle_val) / high_val * 100))
+                else:
+                    discount_pct = 0
+                self.current["shown_price"] = middle_price
+                self.current["discount_pct"] = discount_pct
+                self.current["transparent_text"] = transparent.format(high_price) if display_condition == "transparent" else ""
+
             self.product.showProduct(self.current)
             self.t0 = time()
 
@@ -130,7 +222,14 @@ class Choices(ExperimentFrame):
             return
 
         if choice == "yes":
-            self.selected[self.current["id"]] = self.current["shown_cost"]
+            self.selected[self.current["id"]] = self.current["shown_price"]
+
+        self.all_choices.append({
+            "id": self.current["id"],
+            "label": self.current["label"],
+            "shown_price": self.current["shown_price"],
+            "choice": choice,
+        })
 
         elapsed = time() - self.t0
         self.file.write("\t".join([
@@ -140,13 +239,16 @@ class Choices(ExperimentFrame):
             self.current["label"],
             self.current["size"],
             self.current["category"],
-            self.current["shown_cost"],
+            self.current["display_condition"],
+            self.current["price_level"],
+            self.current["shown_price"],
             choice,
             str(elapsed),
         ]) + "\n")
         self.proceed()
 
     def nextFun(self):
+        self.root.status["products_run_index"] = self.run_index + 1
         if self.root.status["bag"] != "-1":
             data = "_".join([i for i in self.selected.keys()]) + "|" + "_".join([i for i in self.selected.values()])
             data = {'id': self.id, 'round': "products", 'offer': data}
@@ -171,17 +273,25 @@ class OneProduct(Canvas):
         self.categoryLabel = ttk.Label(self, text = "", background = "white", font = "helvetica 11")
         self.categoryLabel.grid(column = 1, row = 2, pady = 1)
 
-        self.priceLabel = ttk.Label(self, text = "", background = "white", font = "helvetica 16 bold")
-        self.priceLabel.grid(column = 1, row = 3, pady = 4)
+        self.priceFrame = Frame(self, background = "white")
+        self.priceFrame.grid(column = 1, row = 3, pady = 4)
+
+        self.priceSingleLabel = ttk.Label(self.priceFrame, text = "", background = "white", font = "helvetica 16 bold")
+        self.highPriceFont = tkfont.Font(family = "helvetica", size = 14, weight = "normal", overstrike = 1)
+        self.highPriceLabel = ttk.Label(self.priceFrame, text = "", background = "white", font = self.highPriceFont)
+        self.salePriceLabel = ttk.Label(self.priceFrame, text = "", background = "white", font = "helvetica 16 bold")
+        self.transparentLabel = ttk.Label(self.priceFrame, text = "", background = "white", font = "helvetica 12")
 
         self.questionLabel = ttk.Label(self, text = questionText, background = "white", font = "helvetica 15")
         self.questionLabel.grid(column = 1, row = 4, pady = 10)
 
         self.buttons = Frame(self, background = "white")
         self.buttons.grid(column = 1, row = 5, pady = 5)
-        self.yesButton = ttk.Button(self.buttons, text = "Ano", command = lambda: self.choose("yes"))
+        button_style = ttk.Style()
+        button_style.configure("ProductsChoice.TButton", font = "helvetica 15")
+        self.yesButton = ttk.Button(self.buttons, text = "Ano", command = lambda: self.choose("yes"), style = "ProductsChoice.TButton")
         self.yesButton.grid(column = 0, row = 0, padx = 10)
-        self.noButton = ttk.Button(self.buttons, text = "Ne", command = lambda: self.choose("no"))
+        self.noButton = ttk.Button(self.buttons, text = "Ne", command = lambda: self.choose("no"), style = "ProductsChoice.TButton")
         self.noButton.grid(column = 1, row = 0, padx = 10)
 
         self.columnconfigure(0, weight = 1)
@@ -191,7 +301,27 @@ class OneProduct(Canvas):
         self.product.changeImage(product["file"])
         self.label["text"] = f"{product['label']} ({product['size']})"
         self.categoryLabel["text"] = product["category"]
-        self.priceLabel["text"] = product["shown_cost"]
+
+        # Keep a fixed three-row price block in all conditions to avoid layout jumps.
+        self.highPriceLabel["text"] = ""
+        self.salePriceLabel["text"] = ""
+        self.transparentLabel["text"] = ""
+        self.highPriceLabel.grid(column = 0, row = 0, pady = 1)
+        self.salePriceLabel.grid(column = 0, row = 1, pady = 1)
+        self.transparentLabel.grid(column = 0, row = 2, pady = (2, 0))
+        self.priceSingleLabel.grid_forget()
+
+        if product["display_condition"] == "baseline":
+            self.salePriceLabel["text"] = product["shown_price"]
+            return
+
+        self.highPriceLabel["text"] = product["high_price"]
+
+        discount_text = f" (-{abs(product['discount_pct'])} %)" if product["discount_pct"] is not None else ""
+        self.salePriceLabel["text"] = f"{product['middle_price']}{discount_text}"
+
+        if product["display_condition"] == "transparent":
+            self.transparentLabel["text"] = product["transparent_text"]
 
     def choose(self, choice):
         self.root.record_choice(choice)
@@ -221,7 +351,7 @@ ProductsIntroUnderstanding = (
         "name": "ProductsInstructionsAndUnderstanding",
         "randomize": False,
         "height": "auto",
-        "finalButton": "Další",
+        "finalButton": "Pokračovat",
     },
 )
 ProductsIntro4 = (InstructionsFrame, {"text": products_intro_4, "height": "auto"})
@@ -232,15 +362,16 @@ ProductsIntro4 = (InstructionsFrame, {"text": products_intro_4, "height": "auto"
 def main():
     os.chdir(os.path.dirname(os.getcwd()))
     from login import Login
-    #from intros import Ending
+    from intros import Ending
     GUI([
         Login,
+        Choices,
         ProductsIntro1,
         ProductsIntro2,
-        ProductsIntroUnderstanding,
+        #ProductsIntroUnderstanding,
         ProductsIntro4,
         Choices,
-        #Ending,
+        Ending,
     ])
 
 

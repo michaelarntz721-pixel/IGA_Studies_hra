@@ -29,48 +29,24 @@ except Exception as e:
 
 from gui import GUI
 
-from intros import Initial, Intro, Ending
-from demo import Demographics
-from comments import Comments
+from intros import Ending
 from login import Login
-from videointros import Sound, VideoIntro, StartVideos, SecondModuleIntro, QuizIntroduction
-from videos import Videos, Attention, Quiz, EndQuestionnaire, Videos2, Postdiction
-from questionnaire import UPPS, SCI, SAMS, Mindset, QuestInstructions
-from intervention import Intervention
+from questionnaire import SalesProneness, TransactionValue, Numeracy
+from products import ProductsIntro1, ProductsIntro2, ProductsIntroUnderstanding, ProductsIntro4, Choices
 
 
 
-frames = [Initial,
-          Login, 
-          Intro,             
-          Sound,
-          VideoIntro,
-          Intervention,
-          StartVideos,
-          Videos2, Attention,
-          Videos2, Attention,
-          Videos2, Attention,
-          Videos2, Attention,
-          SecondModuleIntro, 
-          Videos2, Attention,
-          Videos2, Attention,
-          Videos2, Attention,
-          Videos2, Attention,
-          EndQuestionnaire,
-          QuestInstructions,
-          UPPS,
-          SCI,
-          SAMS,
-          Mindset,
-          QuizIntroduction,
-          Quiz,
-          Postdiction,
-          Demographics,
-          Comments,
-          Ending
+frames = [Login,
+        ProductsIntro1,
+        ProductsIntro2,
+        ProductsIntroUnderstanding,
+        ProductsIntro4,
+        Choices,
+        SalesProneness, TransactionValue, Numeracy,
+        Choices,
+        Ending
          ]
 
-#frames = [Login, Videos2]
 
 if __name__ == "__main__":
     try:

@@ -28,50 +28,59 @@ class Login(InstructionsFrame):
         self.progressBar = ttk.Progressbar(self, orient = HORIZONTAL, length = 400, mode = 'indeterminate')
         self.progressBar.grid(row = 2, column = 1, sticky = N)
 
-    def login(self):       
+    def login(self):             
         count = 0
         while True:
             self.update()
             if count % 50 == 0:            
-                data = urllib.parse.urlencode({'id': self.root.id, 'round': 0, 'offer': "login"})
+                data = urllib.parse.urlencode({'id': self.root.id, 'round': self.root.status["code"], 'offer': "login"})
                 data = data.encode('ascii')
-                if URL == "TEST":               
-                    response = "start"
+                if URL == "TEST":                                                       
+                    bag = str(random.randint(1, 10)) if random.random() < 0.4 else "-1"
+                    if random.random() < 0.5:
+                        trustRoles = random.choice(["A", "B"]) + "X"
+                        trustPairs = str(random.randint(1, 10)) + "_-1" 
+                    else:
+                        trustRoles = random.choice(["A", "B"]) + random.choice(["A", "B"])
+                        trustPairs = "_".join([str(random.randint(1, 10)) for i in range(2)])
+                    response = "|".join(["start", bag, trustPairs, trustRoles]) 
                 else:
                     response = ""
                     try:
                         with urllib.request.urlopen(URL, data = data) as f:
                             response = f.read().decode("utf-8") 
-                        self.root.status["logged"] = True
                     except Exception:
-                        self.changeText("Server nedostupný")                    
+                        self.changeText("Server nedostupný")
                 if "start" in response:
-                    self.update_intros()
+                    info, bag, trustPairs, trustRoles = response.split("|")              
+                    self.root.status["bag"] = bag
+                    self.root.status["trust_roles"] = list(trustRoles)
+                    self.root.status["trust_pairs"] = trustPairs.split("_")         
                     self.progressBar.stop()
-                    self.write()
+                    self.write(response)
                     self.nextFun()                      
                     break
+                elif response == "login_successful" or response == "already_logged":
+                    self.changeText("Přihlášen")
+                    self.root.status["logged"] = True
+                elif response == "ongoing":
+                    self.changeText("Do studie se již nelze připojit")
+                elif response == "no_open":
+                    self.changeText("Studie není otevřena")
+                elif response == "closed":
+                    self.changeText("Studie je uzavřena pro přihlašování")
+                elif response == "not_grouped":
+                    self.changeText("V experimentu nezbylo místo. Zavolejte prosím experimentátora zvednutím ruky.")
             count += 1                  
-            sleep(0.1)        
+            sleep(0.1)    
 
     def run(self):
         self.progressBar.start()
         self.login()
 
-    def update_intros(self):
-        self.root.status["condition"] = random.choice(["nudge", "boost", "control"])
-        self.root.status["videoNumber"] = 1
-        self.root.status["distractions1"] = ["chat", "game", "tiktok", "control"]
-        self.root.status["distractions2"] = ["chat", "game", "tiktok", "control"]
-        random.shuffle(self.root.status["distractions1"])
-        random.shuffle(self.root.status["distractions2"])        
-        self.root.status["distractions"] = self.root.status["distractions1"] + self.root.status["distractions2"]             
-        self.root.status["chat_order"] = ["chatA.txt", "chatB.txt"]
-        random.shuffle(self.root.status["chat_order"])
-
-    def write(self):
+    def write(self, response):
         self.file.write("Login" + "\n")
-        self.file.write(self.id + "\t" + self.root.status["condition"] + "\t" + "\t".join(self.root.status["distractions"]) + "\n\n")        
+        self.file.write(self.id + "\t" + response + "\n\n")        
 
     def gothrough(self):
         self.run()

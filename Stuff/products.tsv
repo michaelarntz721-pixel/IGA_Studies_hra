@@ -1,4 +1,4 @@
-id	file	label	size	category	cost	sale	low
+id	file	label	size	category	high	middle	low
 S01	S01.png	Sedita Horalky	50 g	Sladkosti	19,90 Kč	12,00 Kč	10,00 Kč
 S02	S02.png	Kinder Chocolate	50 g	Sladkosti	30,90 Kč	25,00 Kč	20,00 Kč
 S03	S03.png	Lindt Excellence 70 % kakaa	100 g	Sladkosti	111,50 Kč	50,00 Kč	35,00 Kč
