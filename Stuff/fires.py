@@ -1,0 +1,208 @@
+#! python3
+# -*- coding: utf-8 -*-
+
+import os
+import random
+
+from common import InstructionsFrame, InstructionsAndUnderstanding
+from questionnaire import BlockQuestionnaire
+from gui import GUI
+
+from Tutorial_fire import FireTutorialGame
+from Tutorial_sprinkler import SprinklerTutorialGame
+from Tutorial_layout import LayoutTutorialGame
+from experiment_game import ExperimentGame
+
+
+################################################################################
+# TEXTS
+
+fires_intro_1 = """V této části studie budete hrát počítačovou hru, ve které se na poli objevují ohně. Na situaci můžete reagovat dvěma různými způsoby."""
+
+fires_intro_2 = """V této části studie budete hrát počítačovou hru, ve které se na poli objevují ohně. Na situaci můžete reagovat dvěma způsoby: hasit jednotlivé ohně pomocí kyblíku, nebo opravit zavlažovací systém.
+Nejprve absolvujete krátký trénink, ve kterém se naučíte, jak hra funguje. Poté odehrajete dvě hlavní kola hry.
+Před každým kolem dostanete přesné informace o tom, jak se bude výsledek daného kola vyhodnocovat.
+Po skončení této části bude jedno z hlavních kol náhodně vybráno jako rozhodné pro výplatu podle pravidel, která budou uvedena v průběhu experimentu.
+Prosíme, čtěte veškeré instrukce pozorně."""
+
+fires_rules = """V každém kole je Vaším cílem zabránit finančním ztrátám co nejúčinněji. Každé hlavní kolo začíná částkou 100,00 Kč a trvá nejdéle 120 sekund. Kolo může skončit také dříve, pokud se částka sníží na 0 Kč nebo pokud spustíte zavlažovací systém.
+Během kola se na poli objevují ohně. Za každý nový oheň se z částky okamžitě odečte 1,50 Kč. Za každou sekundu, kdy oheň zůstává aktivní, se odečítá dalších 0,04 Kč za každý aktivní oheň. Pokud tedy hoří více ohňů najednou, ztráty se sčítají.
+Na situaci můžete reagovat dvěma způsoby. První možností je hasit jednotlivé ohně pomocí kyblíku. Uhašení jednoho ohně zastaví další průběžné ztráty z tohoto ohně, ale další ohně se mohou objevovat dál.
+Druhou možností je opravit zavlažovací systém. To provedete tak, že postupně aktivujete čtyři ventily ve správném pořadí. Jakmile dokončíte čtvrtý ventil, spustí se zavlažovací systém, aktivní ohně se automaticky uhasí a kolo skončí. Započítá se částka, která v tu chvíli zůstala.
+V tutoriálu si nyní vyzkoušíte oba způsoby ovládání."""
+
+fires_tutorial_bucket = """V této části si vyzkoušíte hašení jednotlivých ohňů pomocí kyblíku."""
+
+fires_tutorial_sprinkler = """V této části si vyzkoušíte opravu zavlažovacího systému."""
+
+fires_tutorial_layout = """Poslední část tutoriálu Vám ukáže celkové rozložení obrazovky, jak bude vypadat při hře."""
+
+fires_understanding_intro = """Než začne hlavní hra, odpovíte na několik otázek, které ověří, že ovládání a pravidlům rozumíte."""
+
+fires_understanding_questions = [
+    [
+        "Když uhasíte jeden oheň, co se děje dál?",
+        [
+            "V daném kole se už žádné další ohně neobjeví.",
+            "Další ohně se budou objevovat i nadále.",
+            "Po uhašení jednoho ohně se automaticky spustí postřikovač.",
+        ],
+        [
+            "To není správně. Uhašení jednoho ohně zastaví pouze postupné ztráty daného ohně, další ohně se budou nadále objevovat.",
+            "Správně. Uhašení jednoho ohně zastaví pouze postupné ztráty daného ohně, další ohně se budou nadále objevovat.",
+            "To není správně. Uhašení jednoho ohně zastaví pouze postupné ztráty daného ohně, další ohně se budou nadále objevovat. Postřikovač není možné spustit hašením ohňů.",
+        ],
+    ],
+    [
+        "Které tvrzení o kyblíku je správné?",
+        [
+            "Jedním naplněním kyblíku lze uhasit více ohňů.",
+            "Kyblík se naplní jen tehdy, když podržíte kurzor v jezeře dostatečně dlouho, a jedním naplněním lze uhasit jeden oheň.",
+            "Kyblík se naplní automaticky pokaždé, když se dotknete jezera.",
+        ],
+        [
+            "To není správně. Jedním naplněným kyblíkem je možné uhasit právě jeden oheň. Po uhašení je potřeba opět kyblík v jezeře naplnit.",
+            "Správně. Kyblík je potřeba držet nad jezerem, dokud se celý nenaplní. Když je plný, tak je možné uhasit právě jeden oheň. Po uhašení je potřeba opět kyblík v jezeře naplnit.",
+            "To není správně. Kyblík je potřeba držet nad jezerem, dokud se celý nenaplní. Když je plný, tak je možné uhasit právě jeden oheň. Po uhašení je potřeba opět kyblík v jezeře naplnit.",
+        ],
+    ],
+    [
+        "Které tvrzení o zavlažovacím systému je správné?",
+        [
+            "Ventily je možné dokončit v libovolném pořadí a každý z nich hned snižuje počet nových ohňů.",
+            "Stačí dokončit jeden ventil a postřikovač se spustí.",
+            "Ventily je potřeba dokončit ve správném pořadí a po dokončení všech čtyř se spustí postřikovač.",
+        ],
+        [
+            "To není správně. Ventily je potřeba dokončit ve správném pořadí a po dokončení všech čtyř se spustí postřikovač a další ohně se poté přestanou objevovat.",
+            "To není správně. Ventily je potřeba dokončit ve správném pořadí a po dokončení všech čtyř se spustí postřikovač a další ohně se poté přestanou objevovat.",
+            "Správně. Ventily je potřeba dokončit ve správném pořadí a po dokončení všech čtyř se spustí postřikovač a další ohně se poté přestanou objevovat.",
+        ],
+    ],
+]
+
+fires_round_self = """V tomto kole hrajete o svou vlastní finanční odměnu.
+V případě, že bude vylosováno toto kolo, tak částka, kterou se Vám podaří v tomto kole uchránit, bude přičtena k Vaší finální odměně.
+
+Každý nově vzniklý oheň způsobí okamžitou finanční ztrátu a každý oheň, který zůstane aktivní, bude dále způsobovat další ztráty v čase.
+Na situaci můžete reagovat dvěma způsoby. Můžete hasit jednotlivé ohně pomocí kyblíku, nebo můžete opravovat zavlažovací systém postupným dokončením ventilů ve správném pořadí."""
+
+fires_round_charity = """V tomto kole hrajete o finanční výsledek určený pro charitativní účel.
+V případě, že bude vylosováno toto kolo, tak částka, kterou se Vám podaří v tomto kole uchránit, bude poslána na účet charity Dobrý Anděl.
+
+Nadace Dobrý anděl je charitativní organizace, která díky příspěvkům dárců, Dobrých andělů, každý měsíc podporuje tisíce rodin s dětmi, které se ocitly v těžké životní situaci vlivem vážného onemocnění některého z členů rodiny, ať už dítěte, maminky nebo tatínka.
+Dobří andělé podporují rodiny, v nichž se dítě nebo jeden z rodičů potýká s onkologickým nebo jiným vážným onemocněním a které se vlivem této nemoci ocitly ve složité životní situaci. Každý dar jim může pomoci lépe zvládat těžké chvíle související s náročnou léčbou.
+Cílem nadace je vytvořit svět, kde naděje a podpora mají své místo a kde se lidé spojují, aby si navzájem pomáhali překonávat ty nejtěžší chvíle spjaté s vážným onemocněním.
+
+Každý nově vzniklý oheň způsobí okamžitou finanční ztrátu a každý oheň, který zůstane aktivní, bude dále způsobovat další ztráty v čase.
+Na situaci můžete reagovat dvěma způsoby. Můžete hasit jednotlivé ohně pomocí kyblíku, nebo můžete opravovat zavlažovací systém postupným dokončením ventilů ve správném pořadí."""
+
+fires_questionnaire_intro = """Nakonec prosím ohodnoťte následující tvrzení podle toho, jak jste hru prožíval(a).
+Použijte škálu od 1 (silně nesouhlasím) do 7 (silně souhlasím)."""
+
+selfResult = """V tomto kole se Vám podařilo uchránit {} Kč z původních 100 Kč. Pokud bude vylosováno toto kolo, tak tato částka bude přičtena k Vaší finální odměně."""
+charityResult = """V tomto kole se Vám podařilo uchránit {} Kč z původních 100 Kč. Pokud bude vylosováno toto kolo, tak tato částka bude poslána na účet charity Nadace Dobrý Anděl."""
+
+
+################################################################################
+# SCREENS
+
+FiresIntro1 = (InstructionsFrame, {"text": fires_intro_1, "height": "auto"})
+FiresIntro2 = (InstructionsFrame, {"text": fires_intro_2, "height": "auto"})
+FiresRules = (InstructionsFrame, {"text": fires_rules, "height": "auto"})
+
+FiresTutorialBucket = (InstructionsFrame, {"text": fires_tutorial_bucket, "height": "auto"})
+FiresTutorialSprinkler = (InstructionsFrame, {"text": fires_tutorial_sprinkler, "height": "auto"})
+FiresTutorialLayout = (InstructionsFrame, {"text": fires_tutorial_layout, "height": "auto"})
+
+FiresUnderstanding = (
+    InstructionsAndUnderstanding,
+    {
+        "text": fires_understanding_intro,
+        "controlTexts": fires_understanding_questions,
+        "name": "FiresInstructionsAndUnderstanding",
+        "randomize": False,
+        "height": "auto",
+        "finalButton": "Pokračovat",
+    },
+)
+
+FiresRoundSelf = (InstructionsFrame, {"text": fires_round_self, "height": "auto"})
+FiresRoundCharity = (InstructionsFrame, {"text": fires_round_charity, "height": "auto"})
+
+
+class FiresRoundIntro(InstructionsFrame):
+    def __init__(self, root):
+        if "fires_round_order" not in root.status:
+            order = ["self", "charity"]
+            random.shuffle(order)
+            root.status["fires_round_order"] = order
+            root.status["fires_round_index"] = 0
+            root.status["fires_round_chosen"] = random.choice(order)
+        order = root.status["fires_round_order"]
+        condition = order[root.status["fires_round_index"]]
+        root.status["fires_round_index"] += 1
+        text = fires_round_self if condition == "self" else fires_round_charity
+        root.file.write(f"FiresRound\t{condition}\n")
+        super().__init__(root, text=text, height="auto")
+
+
+class ResultGame(InstructionsFrame):
+    def __init__(self, root):
+        condition = root.status["fires_round_order"][root.status["fires_round_index"] - 1]
+        reward = root.status["fires_round_reward"]
+        text = selfResult.format(reward) if condition == "self" else charityResult.format(reward)
+        super().__init__(root, text=text, height="auto")
+
+
+FiresQuestionnaire = (
+    BlockQuestionnaire,
+    {
+        "perpage": 4,
+        "file": "fires_items.txt",
+        "name": "FiresQuestionnaire",
+        "left": "silně nesouhlasím",
+        "right": "silně souhlasím",
+        "options": 7,
+        "shuffle": False,
+        "instructions": fires_questionnaire_intro,
+        "wraplength": 900,
+        "center": True,
+    },
+)
+
+
+################################################################################
+
+
+def main():
+    os.chdir(os.path.dirname(os.getcwd()))
+    from login import Login
+    from intros import Ending
+
+    GUI([
+        Login,
+        FiresIntro1,
+        FiresIntro2,
+        FiresRules,
+        FiresTutorialBucket,
+        FireTutorialGame,
+        FiresTutorialSprinkler,
+        SprinklerTutorialGame,
+        FiresTutorialLayout,
+        LayoutTutorialGame,
+        FiresUnderstanding,
+        FiresRoundIntro,
+        ExperimentGame,
+        ResultGame,
+        FiresQuestionnaire,
+        FiresRoundIntro,
+        ExperimentGame,
+        ResultGame,
+        FiresQuestionnaire,
+        Ending,
+    ])
+
+
+if __name__ == "__main__":
+    main()

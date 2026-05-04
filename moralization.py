@@ -33,41 +33,39 @@ from intros import Initial, Intro, Ending
 from demo import Demographics
 from comments import Comments
 from login import Login
-from videointros import Sound, VideoIntro, StartVideos, SecondModuleIntro, QuizIntroduction
-from videos import Videos, Attention, Quiz, EndQuestionnaire, Videos2, Postdiction
-from questionnaire import UPPS, SCI, SAMS, Mindset, QuestInstructions
-from intervention import Intervention
+from fires import (
+    FiresIntro1, FiresIntro2, FiresRules,
+    FiresTutorialBucket, FiresTutorialSprinkler, FiresTutorialLayout,
+    FiresUnderstanding, FiresRoundIntro, FiresQuestionnaire, ResultGame,
+)
+from Tutorial_fire import FireTutorialGame
+from Tutorial_sprinkler import SprinklerTutorialGame
+from Tutorial_layout import LayoutTutorialGame
+from experiment_game import ExperimentGame
 
 
 
-frames = [Initial,
-          Login, 
-          Intro,             
-          Sound,
-          VideoIntro,
-          Intervention,
-          StartVideos,
-          Videos2, Attention,
-          Videos2, Attention,
-          Videos2, Attention,
-          Videos2, Attention,
-          SecondModuleIntro, 
-          Videos2, Attention,
-          Videos2, Attention,
-          Videos2, Attention,
-          Videos2, Attention,
-          EndQuestionnaire,
-          QuestInstructions,
-          UPPS,
-          SCI,
-          SAMS,
-          Mindset,
-          QuizIntroduction,
-          Quiz,
-          Postdiction,
-          Demographics,
-          Comments,
-          Ending
+frames = [        
+        Login,
+        FiresIntro1,
+        FiresIntro2,
+        FiresRules,
+        FiresTutorialBucket,
+        FireTutorialGame,
+        FiresTutorialSprinkler,
+        SprinklerTutorialGame,
+        FiresTutorialLayout,
+        LayoutTutorialGame,
+        FiresUnderstanding,
+        FiresRoundIntro,
+        ExperimentGame,
+        ResultGame,
+        FiresQuestionnaire,
+        FiresRoundIntro,
+        ExperimentGame,
+        ResultGame,
+        FiresQuestionnaire,
+        Ending,
          ]
 
 #frames = [Login, Videos2]

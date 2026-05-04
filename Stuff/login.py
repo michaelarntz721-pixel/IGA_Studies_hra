@@ -80,7 +80,7 @@ class Login(InstructionsFrame):
 
     def write(self, response):
         self.file.write("Login" + "\n")
-        self.file.write(self.id + "\t" + response + "\n\n")        
+        self.file.write(self.id + "\t" + "\t".join(response.split("|")) + "\n\n")        
 
     def gothrough(self):
         self.run()
