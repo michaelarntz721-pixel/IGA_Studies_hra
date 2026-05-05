@@ -125,7 +125,7 @@ class SprinklerTutorialGame(ExperimentGame):
         self.end_title.place(relx=0.5, rely=0.40, anchor="center")
         self.end_label = tk.Label(
             self.end_overlay,
-            text="Tutoriál je hotový. Můžete pokračovat do hlavní části experimentu, nebo si ho projít ještě jednou.",
+            text="Tutorial zavlažovacího systému je hotový. Můžete pokračovat do další části tutorialu, nebo si ho projít ještě jednou.",
             font=("Trebuchet MS", 18, "bold"),
             bg=RIGHT_BG,
             fg="#2f78b2",
@@ -204,9 +204,7 @@ class SprinklerTutorialGame(ExperimentGame):
                 ),
             ),
             (
-                "Každý správně aktivovaný ventil zvýší hladinu vody o jednu úroveň. "
-                "Stoupající modrý sloupec vody ukazuje, jak blízko jste k dokončení aktuálního kroku. "
-                "Jakmile dokončíte i poslední ventil, systém získá plný tlak a zavlažovací systém se automaticky spustí.",
+                "Jakmile dokončíte i poslední ventil, systém získá plný tlak a zavlažovací systém se automaticky spustí, uhasí všechny aktivní ohně, zabrání dalším ohňům a ukončí kolo.",
                 "Dokončete aktivaci ventilu 4, sledujte stoupající vodu a potom spuštění zavlažování.",
             ),
         ]

@@ -97,7 +97,7 @@ class FireTutorialGame(ExperimentGame):
 
         self.title_label = tk.Label(
             self.info_panel,
-            text="Tutorial - Ohně",
+            text="Tutoriál - Hašení ohňů",
             font=("Georgia", 28, "bold"),
             bg=RIGHT_BG,
             fg="#8b2f17",
@@ -145,7 +145,7 @@ class FireTutorialGame(ExperimentGame):
         self.end_title.place(relx=0.5, rely=0.40, anchor="center")
         self.end_label = tk.Label(
             self.end_overlay,
-            text="Tutoriál je hotový. Můžete pokračovat do hlavní části experimentu, nebo si ho projít ještě jednou.",
+            text="Tutoriál hašení ohňů je hotový. Můžete pokračovat do další části tutoriálu, nebo si ho projít ještě jednou.",
             font=("Trebuchet MS", 18, "bold"),
             bg=RIGHT_BG,
             fg="#c1121f",
@@ -155,7 +155,7 @@ class FireTutorialGame(ExperimentGame):
         self.end_label.place(relx=0.5, rely=0.54, anchor="center")
         self.end_hint = tk.Label(
             self.end_overlay,
-            text="Enter = zkusit tutorial znovu, mezerník = ukončit tutorial",
+            text="Enter = zkusit tutoriál znovu, mezerník = ukončit tutoriál",
             font=("Trebuchet MS", 16, "bold"),
             bg=RIGHT_BG,
             fg="#4f3c2f",
@@ -167,7 +167,7 @@ class FireTutorialGame(ExperimentGame):
         self.start_overlay = tk.Frame(self.root, bg=RIGHT_BG)
         self.start_title_label = tk.Label(
             self.start_overlay,
-            text="Tutorial - Ohně",
+            text="Tutoriál - Hašení ohňů",
             font=("Georgia", 34, "bold"),
             bg=RIGHT_BG,
             fg="#8b2f17",
