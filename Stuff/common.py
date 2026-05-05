@@ -185,7 +185,7 @@ class InstructionsFrame(ExperimentFrame):
         if self.height == "auto":
             self.text.update_idletasks()
             num_lines = self.count_lines()
-            if "</b>" in text:
+            if "</b>" in newtext:
                 num_lines += 1
             self.text.config(height = int(num_lines))
         self.text.config(state = "disabled")
@@ -232,6 +232,61 @@ class InstructionsFrame(ExperimentFrame):
         elif self.keys:
             key = self.keys[0]
             self.root.event_generate(f"<KeyPress-{key}>")
+
+
+class Wait(InstructionsFrame):
+    def __init__(self, root, what):
+        super().__init__(
+            root,
+            text="Čekejte na data od ostatních účastníků studie",
+            height=3,
+            font=15,
+            proceed=False,
+            width=45,
+        )
+        self.progressBar = ttk.Progressbar(self, orient=HORIZONTAL, length=400, mode='indeterminate')
+        self.progressBar.grid(row=2, column=1, sticky=N)
+
+        self.what = what
+
+    def checkUpdate(self):
+        t0 = perf_counter() - 4
+        while True:
+            self.update()
+            if perf_counter() - t0 > 5:
+                t0 = perf_counter()
+                if URL == "TEST":
+                    response = self.test()
+                else:
+                    try:
+                        data = urllib.parse.urlencode({'id': self.id, 'round': "wait", 'offer': self.what})
+                        data = data.encode('ascii')
+                        with urllib.request.urlopen(URL, data=data) as f:
+                            response = f.read().decode("utf-8")
+                            if URL == "http://127.0.0.1:8000/":
+                                print(response)
+                    except Exception:
+                        continue
+                if response:
+                    self.processResponse(response)
+                    self.write(response)
+                    self.progressBar.stop()
+                    self.nextFun()
+                    return
+
+    def run(self):
+        self.progressBar.start()
+        self.checkUpdate()
+
+    def test(self):
+        pass
+
+    def processResponse(self, response):
+        pass
+
+    def write(self, response):
+        self.file.write(self.what.capitalize() + " Results" + "\n")
+        self.file.write(self.id + "\t" + response.replace("_", "\t") + "\n\n")
 
 
 class Question(Canvas):
@@ -570,8 +625,22 @@ class MultipleChoice(Canvas):
         
 
 class InstructionsAndUnderstanding(InstructionsFrame):
-    def __init__(self, root, controlTexts, name, showFeedback = True, randomize = True, fillerHeight = 255, finalButton = None, **kwargs):
+    def __init__(self, root, controlTexts, name, showFeedback = True, randomize = True, fillerHeight = 255, finalButton = None, prompt = None, **kwargs):        
+        
+        original_text = kwargs.get("text", "")
+        self.original_text = original_text
+        if prompt and kwargs.get("height", "auto") == "auto":
+            kwargs["text"] = original_text + "\n\n" + prompt
+
         super().__init__(root, **kwargs)
+
+        if prompt and kwargs.get("height", "auto") == "auto":
+            self.text.config(state="normal")
+            self.text.delete("1.0", "end")
+            self.text.insert("1.0", original_text)
+            self.addStandardTags()
+            self.text.config(state="disabled")
+
         if type(controlTexts) == str:
             self.controlTexts = self.root.texts[controlTexts]
         else:
@@ -579,6 +648,7 @@ class InstructionsAndUnderstanding(InstructionsFrame):
         self.randomize = randomize
         self.showFeedback = showFeedback
         self.finalButton = finalButton
+        self.prompt = prompt
 
         self.controlFrame = Canvas(self, background = "white", highlightbackground = "white",
                                  highlightcolor = "white")
@@ -592,7 +662,8 @@ class InstructionsAndUnderstanding(InstructionsFrame):
         self.next.grid(row = 3, column = 1)
 
         self.controlNum = 0
-        self.createQuestion()
+        if not self.prompt:
+            self.createQuestion()
         self.file.write(name + "\n")
 
     def createQuestion(self):
@@ -628,6 +699,10 @@ class InstructionsAndUnderstanding(InstructionsFrame):
         return max_width, max_height
         
     def nextFun(self):        
+        if self.prompt and not self.controlNum:
+            self.changeText(self.original_text + "\n\n" + self.prompt)
+            self.createQuestion()
+            return
         if self.controlstate == "feedback" or not self.showFeedback:
             self.file.write(self.id + "\t" + str(self.controlNum) + "\t" + self.controlQuestion.getAnswer() + "\n")
             if self.controlNum == len(self.controlTexts):

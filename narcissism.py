@@ -29,19 +29,39 @@ except Exception as e:
 
 from gui import GUI
 
-from intros import Initial, Ending
+from intros import Ending
 from login import Login
 from questionnaire import Narcissism
+from games import GamesIntro, WaitResults
+from groups import Groups, InstructionsGroups
+from trustgame import IntroTrust, InstructionsTrust, Trust, WaitGroups
+from coordination import IntroCoordination, InstructionsCoordination, CoordinationGame, WaitCoordination, CoordinationRoundResult, CoordinationSummary
+from marketentry import IntroMarketEntry, InstructionsMarketEntry, MarketEntryQuiz, MarketEntryGame
+from constants import TRUST_ROUNDS, COORDINATION_ROUNDS, MARKET_ROUNDS
 
 
 
-frames = [Initial,
-          Login, 
+frames = [Login,          
+          InstructionsGroups,
+          Groups,
+          IntroCoordination,
+          InstructionsCoordination,
+          *([CoordinationGame, WaitCoordination, CoordinationRoundResult, CoordinationGame] * COORDINATION_ROUNDS),
+          CoordinationSummary,  
+          Login,
+		  IntroMarketEntry,
+		  InstructionsMarketEntry,
+		  *([MarketEntryQuiz, MarketEntryGame] * MARKET_ROUNDS),	  
+          WaitGroups,
+          GamesIntro,
+          IntroTrust,
+          InstructionsTrust,
+          *([Trust] * TRUST_ROUNDS),
           Narcissism,
+          WaitResults,
           Ending
-         ]
+          ]
 
-#frames = [Login, Videos2]
 
 if __name__ == "__main__":
     try:
