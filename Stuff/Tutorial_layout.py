@@ -11,6 +11,8 @@ from experiment_game import (
 
 
 class LayoutTutorialGame(ExperimentGame):
+    ROUND_CONTEXT_ENABLED = False
+
     def __init__(self, root):
         super().__init__(root)
 
