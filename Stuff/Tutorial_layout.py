@@ -107,7 +107,7 @@ class LayoutTutorialGame(ExperimentGame):
         )
         self.end_hint_label = tk.Label(
             self.end_overlay,
-            text="Enter = zkusit tutoriál znovu, mezerník = ukončit tutoriál",
+            text="Mezerník = pokračovat dál",
             font=("Trebuchet MS", 16, "bold"),
             bg=RIGHT_BG,
             fg="#4f3c2f",
@@ -116,8 +116,6 @@ class LayoutTutorialGame(ExperimentGame):
         )
         self.end_hint_label.place(relx=0.5, rely=0.78, anchor="center")
 
-        self.root.bind_all("<KeyPress-Return>", self.on_enter_press)
-        self.root.bind_all("<KeyPress-KP_Enter>", self.on_enter_press)
         self.guide_card.bind("<Configure>", self._resize_guide_wraps)
         self.root.after(120, self._prepare_demo_layout)
 
@@ -393,8 +391,7 @@ class LayoutTutorialGame(ExperimentGame):
         self.show_end_overlay()
 
     def on_enter_press(self, event=None):
-        if self.end_overlay.winfo_ismapped():
-            self.restart_tutorial()
+        return
 
     def restart_tutorial(self):
         self.game_over = False
