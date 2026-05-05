@@ -13,7 +13,7 @@ from login import Login
 ################################################################################
 # TEXTS
 
-instructionsC0 = """Now you will proceed with another task."""
+instructionsC0 = """<center>Now you will proceed with another task.</center>"""
 
 instructionsC1 = """In this task, you will play with {} different participants. With each participant, you will make decisions in two consecutive trials.
 
@@ -33,7 +33,7 @@ instructionsC2 = """Coordination Game
 
 You are now making your decision for participant {}/{} (trial {}/2).
 
-Choose Option A or Option B. Then state the probability (0-100%) that your choice matches the other participant's choice in this trial."""
+Choose Option A or Option B."""
 
 coordinationPrompt = "<b>Please answer the following control questions to check your understanding of the instructions.</b>"
 
@@ -98,34 +98,47 @@ class CoordinationGame(InstructionsFrame):
         self.decision_var = StringVar()
         self.prediction_var = IntVar(value=50)
 
-        ttk.Style().configure("TRadiobutton", background="white", font="helvetica 15")
+        ttk.Style().configure("TButton", font="helvetica 15")
+        ttk.Style().configure("Coordination.Horizontal.TScale", background="white")
 
         choice_frame = Canvas(self, background="white", highlightbackground="white", highlightcolor="white")
         choice_frame.grid(row=2, column=1, pady=10)
 
-        ttk.Radiobutton(
+        self.option_a_button = ttk.Button(
             choice_frame,
             text="Option A",
-            variable=self.decision_var,
-            value="A",
-            command=self._selected,
-        ).grid(row=0, column=0, padx=20, pady=6, sticky=W)
+            command=lambda: self._selected("A"),
+        )
+        self.option_a_button.grid(row=0, column=0, padx=20, pady=6, sticky=W)
 
-        ttk.Radiobutton(
+        self.option_b_button = ttk.Button(
             choice_frame,
             text="Option B",
-            variable=self.decision_var,
-            value="B",
-            command=self._selected,
-        ).grid(row=1, column=0, padx=20, pady=6, sticky=W)
+            command=lambda: self._selected("B"),
+        )
+        self.option_b_button.grid(row=0, column=1, padx=20, pady=6, sticky=W)
+
+        # Fixed-height fillers keep layout stable before hidden widgets appear.
+        self.filler_prediction = Canvas(self, background="white", highlightbackground="white", highlightcolor="white", height=40, width=1)
+        self.filler_prediction.grid(row=3, column=0, columnspan=1, sticky=W)
+
+        self.filler_scale = Canvas(self, background="white", highlightbackground="white", highlightcolor="white", height=40, width=1)
+        self.filler_scale.grid(row=4, column=0, columnspan=1, sticky=W)
+
+        self.filler_probability = Canvas(self, background="white", highlightbackground="white", highlightcolor="white", height=40, width=1)
+        self.filler_probability.grid(row=5, column=0, columnspan=1, sticky=W)
+
+        self.filler_next = Canvas(self, background="white", highlightbackground="white", highlightcolor="white", height=40, width=1)
+        self.filler_next.grid(row=6, column=0, columnspan=1, sticky=W)
 
         self.prediction_label = ttk.Label(
             self,
-            text="Probability your choice matches the other participant: 50 %",
+            text="What would you estimate is the probability your choice matches the other participant?",
             font="helvetica 15",
             background="white",
         )
-        self.prediction_label.grid(row=3, column=0, columnspan=3, pady=8)
+        self.prediction_label.grid(row=3, column=0, columnspan=3, pady=4)
+        self.prediction_label.grid_remove()
 
         self.prediction_scale = ttk.Scale(
             self,
@@ -135,28 +148,39 @@ class CoordinationGame(InstructionsFrame):
             length=400,
             variable=self.prediction_var,
             command=self._update_prediction_label,
+            style="Coordination.Horizontal.TScale",
         )
-        self.prediction_scale.grid(row=4, column=1, pady=8)
-        self.prediction_scale.state(["disabled"])
+        self.prediction_scale.grid(row=4, column=1, pady=2)
+        self.prediction_scale.grid_remove()
 
-        self.next.grid(row=5, column=1, pady=15)
-        self.next["state"] = "disabled"
+        self.prediction_value_label = ttk.Label(
+            self,
+            text="50 %",
+            font="helvetica 15",
+            background="white",
+        )
+        self.prediction_value_label.grid(row=5, column=0, columnspan=3, pady=4)
+        self.prediction_value_label.grid_remove()
+
+        self.next.grid(row=6, column=1, pady=8)
+        self.next.grid_remove()
 
         self.rowconfigure(0, weight=1)
-        self.rowconfigure(5, weight=2)
+        self.rowconfigure(6, weight=2)
         self.columnconfigure(0, weight=2)
         self.columnconfigure(2, weight=2)
 
-    def _selected(self):
-        self.prediction_scale.state(["!disabled"])
-        self.next["state"] = "normal"
+    def _selected(self, decision):
+        self.decision_var.set(decision)
+        self.prediction_label.grid()
+        self.prediction_scale.grid()
+        self.prediction_value_label.grid()
+        self.next.grid()
 
     def _update_prediction_label(self, value):
         val = int(round(float(value)))
         self.prediction_var.set(val)
-        self.prediction_label["text"] = (
-            "Probability your choice matches the other participant: {} %".format(val)
-        )
+        self.prediction_value_label["text"] = "{} %".format(val)
 
     def nextFun(self):
         if not self.decision_var.get():
@@ -199,8 +223,7 @@ class CoordinationGame(InstructionsFrame):
         self.file.write("\n\n")
 
     def gothrough(self):
-        self.decision_var.set(random.choice(["A", "B"]))
-        self._selected()
+        self._selected(random.choice(["A", "B"]))
         self.prediction_var.set(50)
         self._update_prediction_label("50")
         sleep = __import__("time").sleep
@@ -258,131 +281,6 @@ class CoordinationRoundResult(InstructionsFrame):
         super().__init__(root, text=text, height=9, font=15, width=70)
 
 
-class CoordinationSummary(ExperimentFrame):
-    def __init__(self, root):
-        super().__init__(root)
-        self._ensure_all_results()
-
-        header = ttk.Label(
-            self,
-            text="Coordination Game - Summary",
-            font="helvetica 15 bold",
-            background="white",
-        )
-        header.grid(row=0, column=0, columnspan=3, pady=20)
-
-        columns = ("partner", "trial", "your_choice", "partner_choice", "coord", "payoff")
-        tree = ttk.Treeview(self, columns=columns, show="headings", height=COORDINATION_ROUNDS * 2 + 1)
-        ttk.Style().configure("Treeview", font="helvetica 13", rowheight=28, background="white", fieldbackground="white")
-        ttk.Style().configure("Treeview.Heading", font="helvetica 13 bold")
-
-        tree.heading("partner", text="Participant")
-        tree.heading("trial", text="Trial")
-        tree.heading("your_choice", text="Your choice")
-        tree.heading("partner_choice", text="Other choice")
-        tree.heading("coord", text="Coordinated")
-        tree.heading("payoff", text="Payoff (CZK)")
-
-        tree.column("partner", width=110, anchor="center")
-        tree.column("trial", width=80, anchor="center")
-        tree.column("your_choice", width=130, anchor="center")
-        tree.column("partner_choice", width=130, anchor="center")
-        tree.column("coord", width=130, anchor="center")
-        tree.column("payoff", width=120, anchor="center")
-
-        total = 0
-        results = self.root.status.get("co_results", {})
-        for block in range(1, COORDINATION_ROUNDS + 1):
-            for trial in (1, 2):
-                r = results.get(block, {}).get(trial, {})
-                payoff = int(r.get("payoff", 0))
-                total += payoff
-                tree.insert(
-                    "",
-                    "end",
-                    values=(
-                        block,
-                        trial,
-                        r.get("my_decision", "-"),
-                        r.get("partner_decision", "-"),
-                        "Yes" if r.get("coordinated", False) else "No",
-                        payoff,
-                    ),
-                )
-
-        tree.insert("", "end", values=("", "", "", "", "Total", total))
-        tree.grid(row=1, column=0, columnspan=3, pady=10, padx=25)
-
-        self.root.status["co_total"] = total
-
-        note = ttk.Label(
-            self,
-            text="You have completed all coordination trials. One randomly selected trial will determine payment for this task.",
-            font="helvetica 13 italic",
-            background="white",
-            wraplength=700,
-        )
-        note.grid(row=2, column=0, columnspan=3, pady=10)
-
-        ttk.Style().configure("TButton", font="helvetica 15")
-        self.next = ttk.Button(self, text="Pokračovat", command=self.nextFun)
-        self.next.grid(row=3, column=0, columnspan=3, pady=20)
-
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(2, weight=1)
-        self.rowconfigure(0, weight=1)
-        self.rowconfigure(3, weight=2)
-
-    def _ensure_all_results(self):
-        self.root.status.setdefault("co_results", {})
-        decisions = self.root.status.get("co_decisions", {})
-
-        for block in range(1, COORDINATION_ROUNDS + 1):
-            block_decisions = decisions.get(block, {})
-            for trial in (1, 2):
-                if trial not in block_decisions:
-                    continue
-                if trial in self.root.status["co_results"].get(block, {}):
-                    continue
-
-                my_decision = block_decisions[trial].get("decision", "A")
-                prediction = int(block_decisions[trial].get("prediction", 50))
-                partner_decision = random.choice(["A", "B"])
-                coordinated = my_decision == partner_decision
-                payoff = COORDINATION_SUCCESS if coordinated else 0
-
-                self.root.status["co_results"].setdefault(block, {})
-                self.root.status["co_results"][block][trial] = {
-                    "my_decision": my_decision,
-                    "partner_decision": partner_decision,
-                    "coordinated": coordinated,
-                    "payoff": payoff,
-                    "prediction": prediction,
-                }
-
-    def write(self):
-        self.file.write("CoordinationSummary\n")
-        results = self.root.status.get("co_results", {})
-        for block in range(1, COORDINATION_ROUNDS + 1):
-            for trial in (1, 2):
-                r = results.get(block, {}).get(trial, {})
-                self.file.write(
-                    "\t".join(
-                        [
-                            self.id,
-                            str(block),
-                            str(trial),
-                            r.get("my_decision", ""),
-                            r.get("partner_decision", ""),
-                            "1" if r.get("coordinated", False) else "0",
-                            str(r.get("payoff", "")),
-                            str(r.get("prediction", "")),
-                        ]
-                    )
-                    + "\n"
-                )
-        self.file.write("\n")
-
 
 ################################################################################
 # Tuples for use in frame lists
@@ -420,10 +318,9 @@ if __name__ == "__main__":
 
     GUI([
         Login,
-        IntroCoordination,
-        InstructionsCoordination,
+        #IntroCoordination,
+        #InstructionsCoordination,
         *([CoordinationGame, WaitCoordination, CoordinationRoundResult, CoordinationGame] * COORDINATION_ROUNDS),
-        CoordinationSummary,
         WaitResults,
         Ending,
     ])
