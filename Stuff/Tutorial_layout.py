@@ -101,7 +101,7 @@ class LayoutTutorialGame(ExperimentGame):
         self.end_message_label.config(
             text=(
                 "Teď už jste si vyzkoušeli obě varianty řešení a viděli celou obrazovku experimentu.\n"
-                "V další části už poběží běžná hra se ztrátou peněz i odpočtem času."
+                "Než začne hlavní hra, odpovíte na několik otázek, které ověří, že ovládání a pravidlům rozumíte."
             ),
             font=("Trebuchet MS", 20, "bold"),
             fg="#4f3c2f",
