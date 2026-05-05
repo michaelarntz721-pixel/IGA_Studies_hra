@@ -34,11 +34,19 @@ selfEndingText = """Ve hře s hašením ohňů bylo náhodně vybráno kolo, kde
 
 
 class ExperimentGame(ExperimentFrame):
+    ROUND_CONTEXT_ENABLED = True
+
     def __init__(self, root):
         super().__init__(root)
 
         self.root = root
-        self._resolve_round_context()
+        self._round_context_enabled = bool(getattr(self, "ROUND_CONTEXT_ENABLED", True))
+        if self._round_context_enabled:
+            self._resolve_round_context()
+        else:
+            self.round_condition = "tutorial"
+            self.round_chosen = None
+            self.round_result_recorded = False
         if hasattr(self.root, "geometry"):
             self.root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         if hasattr(self.root, "configure"):
@@ -219,6 +227,8 @@ class ExperimentGame(ExperimentFrame):
         self.round_result_recorded = False
 
     def _record_round_outcome(self):
+        if not self._round_context_enabled:
+            return
         if self.round_result_recorded:
             return
         self.round_result_recorded = True

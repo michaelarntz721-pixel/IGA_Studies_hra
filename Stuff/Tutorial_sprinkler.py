@@ -11,6 +11,8 @@ from experiment_game import (
 
 
 class SprinklerTutorialGame(ExperimentGame):
+    ROUND_CONTEXT_ENABLED = False
+
     def __init__(self, root):
         ExperimentFrame.__init__(self, root)
         self.tutorial_end_delay_ms = 3200
