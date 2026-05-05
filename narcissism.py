@@ -29,44 +29,15 @@ except Exception as e:
 
 from gui import GUI
 
-from intros import Initial, Intro, Ending
-from demo import Demographics
-from comments import Comments
+from intros import Initial, Ending
 from login import Login
-from videointros import Sound, VideoIntro, StartVideos, SecondModuleIntro, QuizIntroduction
-from videos import Videos, Attention, Quiz, EndQuestionnaire, Videos2, Postdiction
-from questionnaire import UPPS, SCI, SAMS, Mindset, QuestInstructions
-from intervention import Intervention
+from questionnaire import Narcissism
 
 
 
 frames = [Initial,
           Login, 
-          Intro,             
-          Sound,
-          VideoIntro,
-          Intervention,
-          StartVideos,
-          Videos2, Attention,
-          Videos2, Attention,
-          Videos2, Attention,
-          Videos2, Attention,
-          SecondModuleIntro, 
-          Videos2, Attention,
-          Videos2, Attention,
-          Videos2, Attention,
-          Videos2, Attention,
-          EndQuestionnaire,
-          QuestInstructions,
-          UPPS,
-          SCI,
-          SAMS,
-          Mindset,
-          QuizIntroduction,
-          Quiz,
-          Postdiction,
-          Demographics,
-          Comments,
+          Narcissism,
           Ending
          ]
 

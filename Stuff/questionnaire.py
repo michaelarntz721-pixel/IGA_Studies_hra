@@ -43,6 +43,7 @@ sciIntro2 = "\nKdyž se zamyslíte nad uplynulým měsícem, do jaké míry špa
 sciIntro3 = "\nNakonec…"
 mindsetIntro = "Do jaké míry souhlasíte nebo nesouhlasíte s těmito tvrzeními?"
 
+narcissismIntro = "Please indicate how much each of the following statements is typical of you. Use the scale provided."
 
 transactionValueIntro = """Níže jsou uvedena tvrzení týkající se cenových nabídek. U každého tvrzení označte, nakolik s ním souhlasíte."""
 
@@ -82,7 +83,7 @@ NUMERACY_ITEMS = [
 
 class Questionnaire(ExperimentFrame):
     def __init__(self, root, words, question = "", labels = None, blocksize = 4, values = 7, text = True,
-                 filetext = "", fontsize = 13, labelwidth = None, wraplength = 0, pady = 0, fixedlines = 0, randomize = False, perpage = 0, questionnaireHeight = "auto", labelFontsize = "auto"):
+                 filetext = "", fontsize = 15, labelwidth = None, wraplength = 0, pady = 0, fixedlines = 0, randomize = False, perpage = 0, questionnaireHeight = "auto", labelFontsize = "auto"):
         super().__init__(root)
 
         self.fontsize = fontsize
@@ -412,7 +413,8 @@ class Numeracy(ExperimentFrame):
 
 class BlockQuestionnaire(InstructionsFrame):
     def __init__(self, root, perpage, file, name, left, right, options = 5, shuffle = True,
-                 instructions = "", height = 3, width = 80, center = False, checks = 0, endChecks = False, wraplength = "auto"):
+                 instructions = "", height = 3, width = 80, center = False, checks = 0, endChecks = False,
+                 wraplength = "auto"):
         super().__init__(root, text = instructions, proceed = False, height = height, width = width)
 
         self.perpage = perpage
@@ -612,6 +614,20 @@ class Likert(Canvas):
         self.root.check()
 
 
+Narcissism = (Questionnaire,
+              {"words": "bpni.txt",
+               "question": narcissismIntro,
+               "labels": ["Not at all\nlike me", "Very much\nlike me"],
+               "values": 6,
+               "randomize": True,
+               "perpage": 10,
+               "blocksize": 5,
+               "wraplength": 700,
+               "labelwidth": 6,
+               "fixedlines": 2,
+               "filetext": "Narcissism"})
+
+
 
 
 
@@ -666,4 +682,4 @@ QuestInstructions = (InstructionsFrame, {"text": questintro, "height": 15})
 
 if __name__ == "__main__":
     os.chdir(os.path.dirname(os.getcwd()))
-    GUI([SalesProneness, TransactionValue, Numeracy])
+    GUI([Narcissism, SalesProneness, TransactionValue, Numeracy])
