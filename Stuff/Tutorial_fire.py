@@ -99,7 +99,7 @@ class FireTutorialGame(ExperimentGame):
 
         self.title_label = tk.Label(
             self.info_panel,
-            text="Tutorial - Ohně",
+            text="Tutoriál - Hašení ohňů",
             font=("Georgia", 28, "bold"),
             bg=RIGHT_BG,
             fg="#8b2f17",
@@ -147,7 +147,7 @@ class FireTutorialGame(ExperimentGame):
         self.end_title.place(relx=0.5, rely=0.40, anchor="center")
         self.end_label = tk.Label(
             self.end_overlay,
-            text="Tutoriál je hotový. Můžete pokračovat do hlavní části experimentu, nebo si ho projít ještě jednou.",
+            text="Tutoriál hašení ohňů je hotový. Mezerníkem pokračujte do další části tutoriálu.",
             font=("Trebuchet MS", 18, "bold"),
             bg=RIGHT_BG,
             fg="#c1121f",
@@ -157,7 +157,7 @@ class FireTutorialGame(ExperimentGame):
         self.end_label.place(relx=0.5, rely=0.54, anchor="center")
         self.end_hint = tk.Label(
             self.end_overlay,
-            text="Enter = zkusit tutorial znovu, mezerník = ukončit tutorial",
+            text="Mezerník = pokračovat dál",
             font=("Trebuchet MS", 16, "bold"),
             bg=RIGHT_BG,
             fg="#4f3c2f",
@@ -169,7 +169,7 @@ class FireTutorialGame(ExperimentGame):
         self.start_overlay = tk.Frame(self.root, bg=RIGHT_BG)
         self.start_title_label = tk.Label(
             self.start_overlay,
-            text="Tutorial - Ohně",
+            text="Tutoriál - Hašení ohňů",
             font=("Georgia", 34, "bold"),
             bg=RIGHT_BG,
             fg="#8b2f17",
@@ -189,8 +189,6 @@ class FireTutorialGame(ExperimentGame):
         self.start_overlay.lift()
 
         self.root.bind_all("<KeyPress-space>", self.on_space_press)
-        self.root.bind_all("<KeyPress-Return>", self.on_enter_press)
-        self.root.bind_all("<KeyPress-KP_Enter>", self.on_enter_press)
         self.info_panel.bind("<Configure>", self._resize_instruction_wraps)
         self.root.after(100, self.root.focus_force)
         self._update_stage_text()
@@ -283,8 +281,7 @@ class FireTutorialGame(ExperimentGame):
             self._update_stage_text()
 
     def on_enter_press(self, event=None):
-        if self.game_over and self.end_overlay.winfo_ismapped():
-            self.restart_tutorial()
+        return
 
     def restart_tutorial(self):
         if self.tutorial_end_after_id is not None:

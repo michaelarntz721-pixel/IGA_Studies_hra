@@ -127,7 +127,7 @@ class SprinklerTutorialGame(ExperimentGame):
         self.end_title.place(relx=0.5, rely=0.40, anchor="center")
         self.end_label = tk.Label(
             self.end_overlay,
-            text="Tutoriál je hotový. Můžete pokračovat do hlavní části experimentu, nebo si ho projít ještě jednou.",
+            text="Tutorial zavlažovacího systému je hotový. Mezerníkem pokračujte do další části tutorialu.",
             font=("Trebuchet MS", 18, "bold"),
             bg=RIGHT_BG,
             fg="#2f78b2",
@@ -137,7 +137,7 @@ class SprinklerTutorialGame(ExperimentGame):
         self.end_label.place(relx=0.5, rely=0.54, anchor="center")
         self.end_hint = tk.Label(
             self.end_overlay,
-            text="Enter = zkusit tutorial znovu, mezerník = ukončit tutorial",
+            text="Mezerník = pokračovat dál",
             font=("Trebuchet MS", 16, "bold"),
             bg=RIGHT_BG,
             fg="#4f3c2f",
@@ -169,8 +169,6 @@ class SprinklerTutorialGame(ExperimentGame):
         self.start_overlay.lift()
 
         self.root.bind_all("<KeyPress-space>", self.on_space_press)
-        self.root.bind_all("<KeyPress-Return>", self.on_enter_press)
-        self.root.bind_all("<KeyPress-KP_Enter>", self.on_enter_press)
         self.info_panel.bind("<Configure>", self._resize_instruction_wraps)
         self.root.after(100, self.root.focus_force)
         self._update_stage_text()
@@ -206,9 +204,7 @@ class SprinklerTutorialGame(ExperimentGame):
                 ),
             ),
             (
-                "Každý správně aktivovaný ventil zvýší hladinu vody o jednu úroveň. "
-                "Stoupající modrý sloupec vody ukazuje, jak blízko jste k dokončení aktuálního kroku. "
-                "Jakmile dokončíte i poslední ventil, systém získá plný tlak a zavlažovací systém se automaticky spustí.",
+                "Jakmile dokončíte i poslední ventil, systém získá plný tlak a zavlažovací systém se automaticky spustí, uhasí všechny aktivní ohně, zabrání dalším ohňům a ukončí kolo.",
                 "Dokončete aktivaci ventilu 4, sledujte stoupající vodu a potom spuštění zavlažování.",
             ),
         ]
@@ -267,8 +263,7 @@ class SprinklerTutorialGame(ExperimentGame):
             self._draw_right_scene()
 
     def on_enter_press(self, event=None):
-        if self.game_over and self.end_overlay.winfo_ismapped():
-            self.restart_tutorial()
+        return
 
     def restart_tutorial(self):
         if self.valve_hold_after_id is not None:

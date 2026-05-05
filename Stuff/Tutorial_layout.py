@@ -27,7 +27,7 @@ class LayoutTutorialGame(ExperimentGame):
         self.timer_label.config(text=self._format_time(self.time_left))
 
         self.start_title_label.config(
-            text="Tutorial - Rozložení obrazovky",
+            text="Tutoriál - Rozložení obrazovky",
             fg="#2f5f8f",
         )
         self.start_hint_label.config(
@@ -94,14 +94,14 @@ class LayoutTutorialGame(ExperimentGame):
         self.timer_focus.place_forget()
 
         self.end_label.config(
-            text="Layout máte hotový",
+            text="Tutoriál máte hotový",
             font=("Georgia", 54, "bold"),
             fg="#2f5f8f",
         )
         self.end_message_label.config(
             text=(
-                "Teď už jste viděli celou obrazovku experimentu.\n"
-                "V další části už poběží běžná hra se ztrátou peněz i odpočtem času."
+                "Teď už jste si vyzkoušeli obě varianty řešení a viděli celou obrazovku experimentu.\n"
+                "Než začne hlavní hra, odpovíte na několik otázek, které ověří, že ovládání a pravidlům rozumíte."
             ),
             font=("Trebuchet MS", 20, "bold"),
             fg="#4f3c2f",
@@ -109,7 +109,7 @@ class LayoutTutorialGame(ExperimentGame):
         )
         self.end_hint_label = tk.Label(
             self.end_overlay,
-            text="Enter = zkusit tutorial znovu, mezerník = ukončit tutorial",
+            text="Mezerník = pokračovat dál",
             font=("Trebuchet MS", 16, "bold"),
             bg=RIGHT_BG,
             fg="#4f3c2f",
@@ -118,8 +118,6 @@ class LayoutTutorialGame(ExperimentGame):
         )
         self.end_hint_label.place(relx=0.5, rely=0.78, anchor="center")
 
-        self.root.bind_all("<KeyPress-Return>", self.on_enter_press)
-        self.root.bind_all("<KeyPress-KP_Enter>", self.on_enter_press)
         self.guide_card.bind("<Configure>", self._resize_guide_wraps)
         self.root.after(120, self._prepare_demo_layout)
 
@@ -280,7 +278,7 @@ class LayoutTutorialGame(ExperimentGame):
                 text=(
                     "Z této částky se průběžně odečítají ztráty. Za každý nový oheň zmizí 0,85 Kč. "
                     "Za každou sekundu, kdy oheň hoří, zmizí dalších 0,04 Kč za každý aktivní oheň. "
-                    "Čím déle necháte oheň hořet, tím rychleji peníze klesají."
+                    "Čím více ohňů necháte oheň hořet, tím rychleji peníze klesají."
                 )
             )
             self.guide_hint_label.config(
@@ -395,8 +393,7 @@ class LayoutTutorialGame(ExperimentGame):
         self.show_end_overlay()
 
     def on_enter_press(self, event=None):
-        if self.end_overlay.winfo_ismapped():
-            self.restart_tutorial()
+        return
 
     def restart_tutorial(self):
         self.game_over = False
