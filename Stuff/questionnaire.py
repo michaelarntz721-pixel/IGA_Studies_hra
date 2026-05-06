@@ -59,17 +59,17 @@ NUMERACY_ITEMS = [
         "unit": "%",
     },
     {
-        "id": "2a",
+        "id": "2",
         "text": "Představte si, že padesátkrát hodíme pětistěnnou kostkou. Kolikrát by tato kostka v průměru z těchto 50 hodů ukázala liché číslo (1, 3 nebo 5)?",
         "unit": "z 50 hodů",
     },
     {
-        "id": "2b",
+        "id": "3",
         "text": "Představte si, že házíme nevyváženou kostkou (se 6 stranami). Pravděpodobnost, že padne číslo 6, je dvakrát vyšší než pravděpodobnost každého z ostatních čísel. Kolikrát by v průměru z těchto 70 hodů padlo číslo 6?",
         "unit": "z 70 hodů",
     },
     {
-        "id": "3",
+        "id": "4",
         "text": "V lese je 20 % hub červených, 50 % hnědých a 30 % bílých. Pravděpodobnost, že červená houba je jedovatá, je 20 %. Pravděpodobnost, že houba, která není červená, je jedovatá, je 5 %. Jaká je pravděpodobnost, že jedovatá houba v lese je červená?",
         "unit": "%",
     },

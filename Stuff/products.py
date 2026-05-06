@@ -92,9 +92,7 @@ prices = ["low", "middle", "high"]
 conditions = [
     ("baseline", "sale"),
     ("sale", "baseline"),
-    ("baseline", "transparent"),
-    ("baseline", "baseline"),
-    ("sale", "sale")
+    ("baseline", "transparent")
 ]
 
 
