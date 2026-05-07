@@ -92,7 +92,7 @@ class SprinklerTutorialGame(ExperimentGame):
                 text="",
                 font=("Trebuchet MS", 16, "bold"),
                 bg=RIGHT_BG,
-                fg="#4f3c2f",
+                fg="#000000",
                 justify="left",
                 wraplength=self.instructions_wraplength,
             )
@@ -122,7 +122,7 @@ class SprinklerTutorialGame(ExperimentGame):
             text="TUTORIÁL DOKONČEN",
             font=("Trebuchet MS", 24, "bold"),
             bg=RIGHT_BG,
-            fg="#4f3c2f",
+            fg="#000000",
         )
         self.end_title.place(relx=0.5, rely=0.40, anchor="center")
         self.end_label = tk.Label(
@@ -140,7 +140,7 @@ class SprinklerTutorialGame(ExperimentGame):
             text="Mezerník = pokračovat dál",
             font=("Trebuchet MS", 16, "bold"),
             bg=RIGHT_BG,
-            fg="#4f3c2f",
+            fg="#000000",
             justify="center",
             wraplength=1040,
         )
@@ -160,7 +160,7 @@ class SprinklerTutorialGame(ExperimentGame):
             text="Stiskněte mezerník a projděte si ovládání zavlažovacího systému",
             font=("Trebuchet MS", 18, "bold"),
             bg=RIGHT_BG,
-            fg="#4f3c2f",
+            fg="#000000",
             justify="center",
             wraplength=1040,
         )
@@ -209,9 +209,9 @@ class SprinklerTutorialGame(ExperimentGame):
             ),
         ]
 
-        inactive_body = "#94897f"
-        inactive_hint = "#aaa39b"
-        active_body = "#4f3c2f"
+        inactive_body = "#000000"
+        inactive_hint = "#000000"
+        active_body = "#000000"
         active_hint = "#37515e"
 
         for idx, (body_label, hint_label) in enumerate(self.stage_blocks):
@@ -368,14 +368,14 @@ class SprinklerTutorialGame(ExperimentGame):
                 h - 60,
                 w * 0.84,
                 h - 12,
-                fill="#7a5634",
+                fill="white",
                 outline="",
             )
             canvas.create_text(
                 w * 0.5,
                 h - 36,
                 text="První segment je hotový. Pokračujte mezerníkem.",
-                fill="#f6e7d2",
+                fill="#000000",
                 font=("Trebuchet MS", 13, "bold"),
                 justify="center",
                 width=int(w * 0.62),
@@ -399,7 +399,7 @@ class SprinklerTutorialGame(ExperimentGame):
             start_y,
             end_x,
             end_y,
-            fill="#fff4d6",
+            fill="white",
             width=11,
             arrow="last",
             arrowshape=(22, 24, 10),
@@ -425,7 +425,7 @@ class SprinklerTutorialGame(ExperimentGame):
             label_y - label_pad_y,
             label_x + 34,
             label_y + 14,
-            fill="#fff4d6",
+            fill="white",
             outline="#d62828",
             width=3,
             tags="tutorial_arrow",

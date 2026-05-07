@@ -12,7 +12,7 @@ from constants import TESTING
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 1024
 LEFT_BG = "#7bc96f"
-RIGHT_BG = "#f7f4ec"
+RIGHT_BG = "white"
 
 RIGHT_PANEL_PADDING = 10
 WATER_LABEL_COLOR = "#d7ebfb"
@@ -98,7 +98,7 @@ class ExperimentGame(ExperimentFrame):
             text="Stiskněte mezerník pro start",
             font=("Georgia", 20),
             bg=RIGHT_BG,
-            fg="#5a5a5a",
+            fg="#000000",
             justify="center",
             wraplength=1040,
         )
@@ -119,7 +119,7 @@ class ExperimentGame(ExperimentFrame):
             text="",
             font=("Georgia", 22, "bold"),
             bg=RIGHT_BG,
-            fg="#4f3c2f",
+            fg="#000000",
             wraplength=1040,
             justify="center"
         )
@@ -685,7 +685,7 @@ class ExperimentGame(ExperimentFrame):
                 pipe_x,
                 head_y - 34,
                 text="ŽÁDNÝ TLAK",
-                fill="#2c1a12",
+                fill="#000000",
                 font=(RIGHT_UI_FONT_ACCENT, 12, "bold")
             )
 
@@ -695,7 +695,7 @@ class ExperimentGame(ExperimentFrame):
             canvas.create_text(
                 (profile_left + profile_right) * 0.5,
                 ground_y - 30,
-                fill="#5a2d16",
+                fill="#000000",
                 font=(RIGHT_UI_FONT, 10, "bold")
             )
             left_width = max(1, self.left_canvas.winfo_width())

@@ -36,13 +36,13 @@ class LayoutTutorialGame(ExperimentGame):
                 "kde během experimentu sledovat peníze a čas."
             ),
             font=("Trebuchet MS", 18, "bold"),
-            fg="#4f3c2f",
+            fg="#000000",
         )
 
         self.guide_card = tk.Frame(
             self.root,
-            bg="#fff7df",
-            highlightbackground="#9b6b2f",
+            bg="white",
+            highlightbackground="#000000",
             highlightthickness=3,
             padx=26,
             pady=18,
@@ -51,7 +51,7 @@ class LayoutTutorialGame(ExperimentGame):
             self.guide_card,
             text="",
             font=("Georgia", 22, "bold"),
-            bg="#fff7df",
+            bg="white",
             fg="#2f5f8f",
             justify="center",
         )
@@ -60,8 +60,8 @@ class LayoutTutorialGame(ExperimentGame):
             self.guide_card,
             text="",
             font=("Trebuchet MS", 15, "bold"),
-            bg="#fff7df",
-            fg="#4f3c2f",
+            bg="white",
+            fg="#000000",
             justify="left",
             wraplength=860,
         )
@@ -70,7 +70,7 @@ class LayoutTutorialGame(ExperimentGame):
             self.guide_card,
             text="",
             font=("Trebuchet MS", 14, "bold"),
-            bg="#fff7df",
+            bg="white",
             fg="#8b2f17",
             justify="center",
             wraplength=860,
@@ -104,7 +104,7 @@ class LayoutTutorialGame(ExperimentGame):
                 "Než začne hlavní hra, odpovíte na několik otázek, které ověří, že ovládání a pravidlům rozumíte."
             ),
             font=("Trebuchet MS", 20, "bold"),
-            fg="#4f3c2f",
+            fg="#000000",
             wraplength=1040,
         )
         self.end_hint_label = tk.Label(
@@ -112,7 +112,7 @@ class LayoutTutorialGame(ExperimentGame):
             text="Mezerník = pokračovat dál",
             font=("Trebuchet MS", 16, "bold"),
             bg=RIGHT_BG,
-            fg="#4f3c2f",
+            fg="#000000",
             justify="center",
             wraplength=1040,
         )
@@ -186,7 +186,7 @@ class LayoutTutorialGame(ExperimentGame):
             22,
             x1,
             92,
-            fill="#fff7df",
+            fill="white",
             outline="#8b2f17",
             width=3,
             tags="tutorial_layout_left",
@@ -203,7 +203,7 @@ class LayoutTutorialGame(ExperimentGame):
             width * 0.5,
             70,
             text="Tady se objevují ohně a hasíte je kyblíkem.",
-            fill="#4f3c2f",
+            fill="#000000",
             font=("Trebuchet MS", 13, "bold"),
             justify="center",
             width=max(200, x1 - x0 - 24),
@@ -221,7 +221,7 @@ class LayoutTutorialGame(ExperimentGame):
             22,
             x1,
             92,
-            fill="#fff7df",
+            fill="white",
             outline="#2f78b2",
             width=3,
             tags="tutorial_layout_right",
@@ -238,7 +238,7 @@ class LayoutTutorialGame(ExperimentGame):
             width * 0.5,
             70,
             text="Tady ovládáte zavlažovací systém.",
-            fill="#4f3c2f",
+            fill="#000000",
             font=("Trebuchet MS", 13, "bold"),
             justify="center",
             width=max(200, x1 - x0 - 24),
@@ -318,7 +318,7 @@ class LayoutTutorialGame(ExperimentGame):
             17,
             216,
             34,
-            fill="#fff4d6",
+            fill="white",
             width=13,
             arrow="last",
             arrowshape=(24, 28, 11),

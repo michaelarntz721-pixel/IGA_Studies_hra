@@ -117,7 +117,7 @@ class FireTutorialGame(ExperimentGame):
                 text="",
                 font=("Trebuchet MS", 16, "bold"),
                 bg=RIGHT_BG,
-                fg="#4f3c2f",
+                fg="#000000",
                 justify="left",
                 wraplength=self.instructions_wraplength,
             )
@@ -142,7 +142,7 @@ class FireTutorialGame(ExperimentGame):
             text="TUTORIÁL DOKONČEN",
             font=("Trebuchet MS", 24, "bold"),
             bg=RIGHT_BG,
-            fg="#4f3c2f",
+            fg="#000000",
         )
         self.end_title.place(relx=0.5, rely=0.40, anchor="center")
         self.end_label = tk.Label(
@@ -160,7 +160,7 @@ class FireTutorialGame(ExperimentGame):
             text="Mezerník = pokračovat dál",
             font=("Trebuchet MS", 16, "bold"),
             bg=RIGHT_BG,
-            fg="#4f3c2f",
+            fg="#000000",
             justify="center",
             wraplength=1040,
         )
@@ -180,7 +180,7 @@ class FireTutorialGame(ExperimentGame):
             text="Stiskněte mezerník a projděte si ovládání hašení ohně",
             font=("Trebuchet MS", 18, "bold"),
             bg=RIGHT_BG,
-            fg="#4f3c2f",
+            fg="#000000",
             justify="center",
             wraplength=1040,
         )
@@ -231,9 +231,9 @@ class FireTutorialGame(ExperimentGame):
             ),
         ]
 
-        inactive_body = "#94897f"
-        inactive_hint = "#aaa39b"
-        active_body = "#4f3c2f"
+        inactive_body = "#000000"
+        inactive_hint = "#000000"
+        active_body = "#000000"
         active_hint = "#37515e"
 
         for idx, (body_label, hint_label) in enumerate(self.stage_blocks):
