@@ -54,7 +54,7 @@ class SprinklerTutorialGame(ExperimentGame):
         self.countdown_value = 0
         self.countdown_after_id = None
 
-        self.tutorial_stage = -1
+        self.al_stage = -1
         self.first_segment_done = False
         self.stage_two_ready = False
 
@@ -74,7 +74,7 @@ class SprinklerTutorialGame(ExperimentGame):
 
         self.title_label = tk.Label(
             self.info_panel,
-            text="Tutorial - Zavlažovací systém",
+            text="Tutoriál - Zavlažovací systém",
             font=("Georgia", 28, "bold"),
             bg=RIGHT_BG,
             fg="#37515e",
@@ -127,7 +127,7 @@ class SprinklerTutorialGame(ExperimentGame):
         self.end_title.place(relx=0.5, rely=0.40, anchor="center")
         self.end_label = tk.Label(
             self.end_overlay,
-            text="Tutorial zavlažovacího systému je hotový. Mezerníkem pokračujte do další části tutorialu.",
+            text="Tutoriál zavlažovacího systému je hotový. Mezerníkem pokračujte do další části tutoriálu.",
             font=("Trebuchet MS", 18, "bold"),
             bg=RIGHT_BG,
             fg="#2f78b2",
@@ -149,7 +149,7 @@ class SprinklerTutorialGame(ExperimentGame):
         self.start_overlay = tk.Frame(self.root, bg=RIGHT_BG)
         self.start_title_label = tk.Label(
             self.start_overlay,
-            text="Tutorial - Zavlažovací systém",
+            text="Tutoriál - Zavlažovací systém",
             font=("Georgia", 34, "bold"),
             bg=RIGHT_BG,
             fg="#37515e",
@@ -196,7 +196,7 @@ class SprinklerTutorialGame(ExperimentGame):
                 "Ventil aktivujete tak, že na něj najedete myší, kliknete levým tlačítkem myši "
                 "a podržíte ho 15 vteřin. "
                 "Postup uvidíte na stoupajícím modrém sloupci vody v potrubí. "
-                "Ventily je potřeba aktivovat postupně podle čísel od 1 do 4.",
+                "Nyní vyzkoušíte pouze první a poslední ventil, ale ve hře je potřeba ventily aktivovat postupně podle čísel od 1 do 4.",
                 (
                     "První úroveň je hotová. Stiskněte mezerník a přejděte k závěrečnému kroku."
                     if self.first_segment_done
