@@ -22,7 +22,7 @@ fires_intro_1 = """V této části studie budete hrát počítačovou hru, ve kt
 fires_intro_2 = """V této části studie budete hrát počítačovou hru, ve které se na poli objevují ohně. Na situaci můžete reagovat dvěma způsoby: hasit jednotlivé ohně pomocí kyblíku, nebo opravit zavlažovací systém.
 Nejprve absolvujete krátký trénink, ve kterém se naučíte, jak hra funguje. Poté odehrajete dvě hlavní kola hry.
 Před každým kolem dostanete přesné informace o tom, jak se bude výsledek daného kola vyhodnocovat.
-Po skončení této části bude jedno z hlavních kol náhodně vybráno jako rozhodné pro výplatu podle pravidel, která budou uvedena v průběhu experimentu.
+Po skončení této části bude jedno z hlavních kol náhodně vybráno jako rozhodné pro výplatu podle pravidel, která budou uvedena v průběhu hry.
 Prosíme, čtěte veškeré instrukce pozorně."""
 
 fires_rules = """V každém kole je Vaším cílem zabránit finančním ztrátám co nejúčinněji. Každé hlavní kolo začíná částkou 100,00 Kč a trvá nejdéle 120 sekund. Kolo může skončit také dříve, pokud se částka sníží na 0 Kč nebo pokud spustíte zavlažovací systém.

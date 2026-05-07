@@ -33,7 +33,7 @@ class LayoutTutorialGame(ExperimentGame):
         self.start_hint_label.config(
             text=(
                 "Stiskněte mezerník a rychle si projděte,\n"
-                "kde během experimentu sledovat peníze a čas."
+                "kde během hry sledovat peníze a čas."
             ),
             font=("Trebuchet MS", 18, "bold"),
             fg="#000000",
@@ -100,7 +100,7 @@ class LayoutTutorialGame(ExperimentGame):
         )
         self.end_message_label.config(
             text=(
-                "Teď už jste si vyzkoušeli obě varianty řešení a viděli celou obrazovku experimentu.\n"
+                "Teď už jste si vyzkoušeli obě varianty řešení a viděli celou obrazovku hry.\n"
                 "Než začne hlavní hra, odpovíte na několik otázek, které ověří, že ovládání a pravidlům rozumíte."
             ),
             font=("Trebuchet MS", 20, "bold"),
@@ -259,7 +259,7 @@ class LayoutTutorialGame(ExperimentGame):
         self.guide_card.lift()
 
         if self.tutorial_stage == 0:
-            self.guide_title_label.config(text="Tady už vidíte celou obrazovku experimentu")
+            self.guide_title_label.config(text="Tady už vidíte celou obrazovku hry")
             self.guide_body_label.config(
                 text=(
                     "Obě varianty už máte vyzkoušené, takže tady jde jen o rychlou orientaci. "

@@ -87,7 +87,7 @@ class ExperimentGame(ExperimentFrame):
         self.start_overlay = tk.Frame(self.root, bg=RIGHT_BG)
         self.start_title_label = tk.Label(
             self.start_overlay,
-            text="Experiment připraven",
+            text="Hra připravena",
             font=("Georgia", 34, "bold"),
             bg=RIGHT_BG,
             fg="#2b2b2b"
@@ -95,7 +95,7 @@ class ExperimentGame(ExperimentFrame):
         self.start_title_label.place(relx=0.5, rely=0.44, anchor="center")
         self.start_hint_label = tk.Label(
             self.start_overlay,
-            text="Stiskněte mezerník pro start",
+            text="Po zmáčknutí mezerníku začne krátký odpočet a hra začne.\nStiskněte mezerník pro start.",
             font=("Georgia", 20),
             bg=RIGHT_BG,
             fg="#000000",
